@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.venv/
+
+# Django & Database Files
+db.sqlite3
+local_settings.py
+*.log
+*.pot
+*.mo
+/media
+/static_collected
+
+# IDE / OS Files
+.vscode/
+.DS_Store
+.idea/
