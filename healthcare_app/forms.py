@@ -2,7 +2,8 @@
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, PatientProfile, DoctorProfile
+from django.contrib.auth.forms import AuthenticationForm
+from .models import User, PatientProfile, DoctorProfile,HelpRequest
 
 class SignUpForm(UserCreationForm):
     ROLE_CHOICES = (
@@ -59,7 +60,7 @@ class SignUpForm(UserCreationForm):
 # In healthcare_app/forms.py
 # Add this code below the SignUpForm class
 
-from django.contrib.auth.forms import AuthenticationForm
+
 
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
@@ -72,3 +73,19 @@ class LoginForm(AuthenticationForm):
         self.fields['password'].widget.attrs.update(
             {'class': 'form-control', 'placeholder': 'Password'}
         )
+
+class HelpRequestForm(forms.ModelForm):
+    class Meta:
+        model = HelpRequest
+        # We only want the patient to fill out the description. The rest is automatic.
+        fields = ['issue_description']
+        widgets = {
+            'issue_description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Please describe your medical issue in detail...'
+            }),
+        }
+        labels = {
+            'issue_description': 'Your Medical Concern'
+        }

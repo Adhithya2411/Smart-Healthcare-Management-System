@@ -5,6 +5,39 @@
 {% block content %}
 <div class="container">
     <h1 class="mb-4">Doctor Dashboard</h1>
-    <p>Welcome, Dr. {{ user.last_name }}. You can view pending help requests and manage patient records here.</p>
+    <p class="lead mb-5">Welcome, Dr. {{ user.last_name }}. Here are the patient help requests awaiting your attention.</p>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Pending Help Requests</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_requests %}
+                <div class="list-group">
+                    {% for request in pending_requests %}
+                        <div class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100 justify-content-between mb-2">
+                                <h5 class="mb-1 text-primary">
+                                    <i class="fas fa-user-injured me-2"></i>Patient: {{ request.patient.user.get_full_name|default:request.patient.user.username }}
+                                </h5>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>{{ request.requested_at|date:"F d, Y" }}
+                                </small>
+                            </div>
+                            <p class="mb-2">{{ request.issue_description }}</p>
+                            <a href="#" class="btn btn-sm btn-outline-primary">
+                                View Details & Respond
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>All Caught Up!</h5>
+                    <p class="mb-0">There are no pending help requests at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
+</div>
 {% endblock %}

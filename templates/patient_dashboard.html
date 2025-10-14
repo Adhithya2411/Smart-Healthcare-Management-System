@@ -5,6 +5,65 @@
 {% block content %}
 <div class="container">
     <h1 class="mb-4">Patient Dashboard</h1>
-    <p>Welcome, {{ user.first_name }}. You can submit a help request or view your medical history here.</p>
+    <p class="lead mb-5">Welcome, {{ user.first_name }}. Submit a new help request or view your past activity below.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-5">
+        <div class="col-md-5 col-lg-4 order-md-last">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-3"><i class="fas fa-plus-circle me-2 text-primary"></i>New Help Request</h4>
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.issue_description.label_tag }}
+                            {{ form.issue_description }}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7 col-lg-8">
+            <h4 class="mb-3"><i class="fas fa-history me-2 text-primary"></i>Your Request History</h4>
+            
+            {% if past_requests %}
+                <div class="list-group shadow-sm">
+                    {% for request in past_requests %}
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">
+                                    {% if request.status == 'Pending' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% elif request.status == 'Answered' %}
+                                        <span class="badge bg-success">Answered</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ request.status }}</span>
+                                    {% endif %}
+                                </h5>
+                                <small class="text-muted">{{ request.requested_at|date:"F d, Y" }}</small>
+                            </div>
+                            <p class="mb-1 mt-2">{{ request.issue_description|truncatewords:25 }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info mt-3" role="alert">
+                    You have not submitted any help requests yet. Use the form on the right to get started.
+                </div>
+            {% endif %}
+        </div>
     </div>
+</div>
 {% endblock %}
