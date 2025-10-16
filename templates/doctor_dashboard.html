@@ -25,7 +25,7 @@
                                 </small>
                             </div>
                             <p class="mb-2">{{ request.issue_description }}</p>
-                            <a href="#" class="btn btn-sm btn-outline-primary">
+                            <a href="{% url 'request_detail' request.id %}" class="btn btn-sm btn-outline-primary">
                                 View Details & Respond
                             </a>
                         </div>

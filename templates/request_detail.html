@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Request Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Help Request Details</h1>
+
+    <div class="row g-5">
+        <div class="col-md-5 col-lg-4 order-md-last">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light"><h4 class="mb-0"><i class="fas fa-user-injured me-2"></i>Patient Details</h4></div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ help_request.patient.user.get_full_name|default:help_request.patient.user.username }}</h5>
+                    <h6 class="card-subtitle mb-3 text-muted">Submitted: {{ help_request.requested_at|date:"F d, Y" }}</h6>
+                    <p class="card-text border-top pt-3"><strong>Issue Description:</strong><br>{{ help_request.issue_description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7 col-lg-8">
+            {% if form %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white"><h4 class="mb-0"><i class="fas fa-prescription-bottle-alt me-2"></i>Your Diagnosis & Prescription</h4></div>
+                <div class="card-body">
+                    <form method="POST" novalidate id="prescription-form">
+                        {% csrf_token %}
+                        <div class="mb-3">{{ form.diagnosis.label_tag }}{{ form.diagnosis }}</div>
+                        <div class="mb-3">{{ form.prescription_text.label_tag }}{{ form.prescription_text }}</div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Response
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white"><h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>Response Already Submitted</h4></div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Diagnosis:</dt><dd class="col-sm-9">{{ prescription.diagnosis }}</dd>
+                        <dt class="col-sm-3">Prescription:</dt><dd class="col-sm-9">{{ prescription.prescription_text|linebreaksbr }}</dd>
+                        <dt class="col-sm-3">Prescribed On:</dt><dd class="col-sm-9">{{ prescription.prescribed_at|date:"F d, Y, P" }}</dd>
+                    </dl>
+                    <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left me-2"></i>Back to Dashboard</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Find the form by the ID we added
+    const form = document.getElementById('prescription-form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            // Find the submit button inside the form
+            const submitButton = form.querySelector('button[type="submit"]');
+            // Disable the button to prevent double clicks
+            submitButton.disabled = true;
+            // Optional: Change button text to give user feedback
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+        });
+    }
+</script>
+{% endblock %}

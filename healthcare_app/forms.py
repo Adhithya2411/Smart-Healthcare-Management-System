@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User, PatientProfile, DoctorProfile,HelpRequest
+from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription
 
 class SignUpForm(UserCreationForm):
     ROLE_CHOICES = (
@@ -88,4 +88,24 @@ class HelpRequestForm(forms.ModelForm):
         }
         labels = {
             'issue_description': 'Your Medical Concern'
+        }
+
+class PrescriptionForm(forms.ModelForm):
+    class Meta:
+        model = Prescription
+        fields = ['diagnosis', 'prescription_text']
+        widgets = {
+            'diagnosis': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'e.g., Viral Pharyngitis'
+            }),
+            'prescription_text': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 4,
+                'placeholder': 'e.g., Advil 200mg twice a day for 3 days...'
+            }),
+        }
+        labels = {
+            'diagnosis': 'Diagnosis',
+            'prescription_text': 'Prescription & Advice'
         }

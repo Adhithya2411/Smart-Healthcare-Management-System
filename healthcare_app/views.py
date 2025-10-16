@@ -1,14 +1,14 @@
 # In healthcare_app/views.py
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from .forms import SignUpForm
+from .forms import SignUpForm,PrescriptionForm
 from django.contrib.auth.decorators import login_required # For basic login check
 from .decorators import role_required # Our custom role checker
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import SignUpForm, LoginForm,HelpRequestForm
-from .models import HelpRequest 
+from .models import HelpRequest,Prescription
 
 def signup_view(request):
     if request.method == 'POST':
@@ -97,3 +97,44 @@ def patient_dashboard(request):
         'past_requests': past_requests
     }
     return render(request, 'patient_dashboard.html', context)
+
+# In healthcare_app/views.py
+
+@login_required
+@role_required(allowed_roles=['doctor'])
+def request_detail_view(request, request_id):
+    help_request = get_object_or_404(HelpRequest, id=request_id)
+    
+    # Initialize context and form variables
+    context = {'help_request': help_request}
+    form = None
+    
+    # Check if the request is still pending
+    if help_request.status == 'Pending':
+        if request.method == 'POST':
+            form = PrescriptionForm(request.POST)
+            if form.is_valid():
+                new_prescription = form.save(commit=False)
+                new_prescription.help_request = help_request
+                new_prescription.save()
+                
+                # Update request status and assign the doctor
+                help_request.status = 'Answered'
+                help_request.doctor = request.user.doctorprofile
+                help_request.save()
+                
+                messages.success(request, 'Your response has been submitted successfully!')
+                return redirect('doctor_dashboard')
+        else:
+            # If it's a GET request for a pending item, show the blank form
+            form = PrescriptionForm()
+        
+        # Add the form to the context only if the request is pending
+        context['form'] = form
+    else:
+        # If the request is NOT pending, fetch the existing prescription to display it
+        # The 'prescription' related name comes from the OneToOneField on the Prescription model
+        existing_prescription = get_object_or_404(Prescription, help_request=help_request)
+        context['prescription'] = existing_prescription
+
+    return render(request, 'request_detail.html', context)
