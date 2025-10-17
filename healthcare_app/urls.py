@@ -8,7 +8,9 @@ from .views import (
     admin_dashboard,
     doctor_dashboard,
     patient_dashboard,
-    request_detail_view # <-- Import the new view
+    request_detail_view,
+    quick_help_view,
+    profile_view
 )
 
 urlpatterns = [
@@ -25,4 +27,6 @@ urlpatterns = [
     # New URL for a single request
     # The <int:request_id> part captures the ID from the URL
     path('request/<int:request_id>/', request_detail_view, name='request_detail'),
+    path('quick-help/', quick_help_view, name='quick_help'),
+    path('profile/', profile_view, name='profile'),
 ]

@@ -60,3 +60,25 @@ class PatientMedicalHistory(models.Model):
 
     def __str__(self):
         return f"{self.patient.user.username} - {self.condition_name}"
+
+class Symptom(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    question_text = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+class SymptomOption(models.Model):
+    symptom = models.ForeignKey(Symptom, on_delete=models.CASCADE, related_name='options')
+    option_text = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.symptom.name} - {self.option_text}"
+
+class Suggestion(models.Model):
+    option = models.OneToOneField(SymptomOption, on_delete=models.CASCADE, related_name='suggestion')
+    suggestion_text = models.TextField()
+    is_prescription_needed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Suggestion for {self.option.option_text}"

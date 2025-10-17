@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0"><i class="fas fa-user-circle me-2"></i>My Profile</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ user.get_full_name|default:user.username }}</h3>
+                    <h6 class="card-subtitle mb-4 text-muted">{{ user.get_role_display }}</h6>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Username:</strong> {{ user.username }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Email:</strong> {{ user.email }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Date Joined:</strong> {{ user.date_joined|date:"F d, Y" }}
+                        </li>
+
+                        {% if user.role == 'patient' %}
+                            <li class="list-group-item">
+                                <strong>Age:</strong> {{ user.patientprofile.age|default:"Not specified" }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Gender:</strong> {{ user.patientprofile.gender|default:"Not specified" }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Contact:</strong> {{ user.patientprofile.contact|default:"Not specified" }}
+                            </li>
+
+                        {% elif user.role == 'doctor' %}
+                            <li class="list-group-item">
+                                <strong>Specialty:</strong> {{ user.doctorprofile.specialty|default:"Not specified" }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Years of Experience:</strong> {{ user.doctorprofile.years_of_experience }}
+                            </li>
+                        {% endif %}
+                    </ul>
+
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-secondary">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

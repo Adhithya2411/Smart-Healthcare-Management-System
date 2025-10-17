@@ -5,7 +5,11 @@
 {% block content %}
 <div class="container">
     <h1 class="mb-4">Patient Dashboard</h1>
-    <p class="lead mb-5">Welcome, {{ user.first_name }}. Submit a new help request or view your past activity below.</p>
+    <p class="lead">Welcome, {{ user.first_name }}. Submit a new help request or view your past activity below.</p>
+    
+    <a href="{% url 'quick_help' %}" class="btn btn-info btn-lg mb-5">
+        <i class="fas fa-robot me-2"></i>Try Smart Quick Help for Minor Issues
+    </a>
 
     {% if messages %}
         {% for message in messages %}

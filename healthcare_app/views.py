@@ -8,7 +8,7 @@ from .decorators import role_required # Our custom role checker
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import SignUpForm, LoginForm,HelpRequestForm
-from .models import HelpRequest,Prescription
+from .models import User,HelpRequest,Prescription,Symptom, SymptomOption, Suggestion
 
 def signup_view(request):
     if request.method == 'POST':
@@ -53,7 +53,19 @@ class CustomLoginView(LoginView):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')
+    # Perform database queries to get statistics
+    patient_count = User.objects.filter(role='patient').count()
+    doctor_count = User.objects.filter(role='doctor').count()
+    pending_requests_count = HelpRequest.objects.filter(status='Pending').count()
+    completed_requests_count = HelpRequest.objects.filter(status='Answered').count()
+    
+    context = {
+        'patient_count': patient_count,
+        'doctor_count': doctor_count,
+        'pending_requests_count': pending_requests_count,
+        'completed_requests_count': completed_requests_count,
+    }
+    return render(request, 'admin_dashboard.html', context)
 
 @login_required
 @role_required(allowed_roles=['doctor'])
@@ -138,3 +150,36 @@ def request_detail_view(request, request_id):
         context['prescription'] = existing_prescription
 
     return render(request, 'request_detail.html', context)
+
+@login_required
+@role_required(allowed_roles=['patient'])
+def quick_help_view(request):
+    context = {}
+    
+    # If the user has selected an option
+    if request.method == 'POST':
+        option_id = request.POST.get('option_id')
+        try:
+            # Find the suggestion linked to the chosen option
+            selected_option = SymptomOption.objects.get(id=option_id)
+            suggestion = selected_option.suggestion
+            context['suggestion'] = suggestion
+        except (SymptomOption.DoesNotExist, Suggestion.DoesNotExist):
+            messages.error(request, "Sorry, a suggestion for that option could not be found.")
+            return redirect('quick_help')
+
+    # If it's the first visit to the page
+    else:
+        try:
+            # Fetch the first question we want to ask
+            main_symptom = Symptom.objects.get(name='main_symptom')
+            context['question'] = main_symptom
+        except Symptom.DoesNotExist:
+            context['error'] = "The Quick Help system is not configured yet. Please check back later."
+            
+    return render(request, 'quick_help.html', context)
+
+@login_required
+def profile_view(request):
+    # The view will pass the request.user object to the template automatically.
+    return render(request, 'profile.html')
