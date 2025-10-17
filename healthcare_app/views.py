@@ -7,8 +7,13 @@ from django.contrib.auth.decorators import login_required # For basic login chec
 from .decorators import role_required # Our custom role checker
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from .forms import SignUpForm, LoginForm,HelpRequestForm
+from .forms import SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateForm, DoctorProfileUpdateForm
 from .models import User,HelpRequest,Prescription,Symptom, SymptomOption, Suggestion
+from django.db.models import Count
+from django.db.models.functions import TruncDate
+from datetime import timedelta
+from django.utils import timezone
+import json
 
 def signup_view(request):
     if request.method == 'POST':
@@ -53,17 +58,44 @@ class CustomLoginView(LoginView):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_dashboard(request):
-    # Perform database queries to get statistics
+    # Stat card counts (same as before)
     patient_count = User.objects.filter(role='patient').count()
     doctor_count = User.objects.filter(role='doctor').count()
     pending_requests_count = HelpRequest.objects.filter(status='Pending').count()
     completed_requests_count = HelpRequest.objects.filter(status='Answered').count()
+
+    # --- New Logic for Chart Data ---
+    # Calculate the date 7 days ago
+    seven_days_ago = timezone.now().date() - timedelta(days=6)
     
+    # Query for help requests in the last 7 days, grouped by day
+    requests_per_day = (
+        HelpRequest.objects.filter(requested_at__date__gte=seven_days_ago)
+        .annotate(date=TruncDate('requested_at'))
+        .values('date')
+        .annotate(count=Count('id'))
+        .order_by('date')
+    )
+
+    # Create a dictionary to hold data for all last 7 days, initialized to 0
+    requests_data = { (seven_days_ago + timedelta(days=i)): 0 for i in range(7) }
+    
+    # Populate the dictionary with actual counts from the query
+    for entry in requests_per_day:
+        requests_data[entry['date']] = entry['count']
+
+    # Prepare labels and data for Chart.js
+    chart_labels = [date.strftime('%b %d') for date in requests_data.keys()]
+    chart_data = list(requests_data.values())
+
     context = {
         'patient_count': patient_count,
         'doctor_count': doctor_count,
         'pending_requests_count': pending_requests_count,
         'completed_requests_count': completed_requests_count,
+        # Add the chart data to the context, converting it to JSON
+        'chart_labels': json.dumps(chart_labels),
+        'chart_data': json.dumps(chart_data),
     }
     return render(request, 'admin_dashboard.html', context)
 
@@ -183,3 +215,41 @@ def quick_help_view(request):
 def profile_view(request):
     # The view will pass the request.user object to the template automatically.
     return render(request, 'profile.html')
+
+
+def index_view(request):
+    # If the user is already logged in, redirect them to their dashboard
+    if request.user.is_authenticated:
+        if request.user.role == 'admin':
+            return redirect('admin_dashboard')
+        elif request.user.role == 'doctor':
+            return redirect('doctor_dashboard')
+        else:
+            return redirect('patient_dashboard')
+
+    # If they are not logged in, show the landing page
+    return render(request, 'index.html')
+
+@login_required
+def profile_edit_view(request):
+    if request.user.role == 'patient':
+        profile_instance = request.user.patientprofile
+        form_class = PatientProfileUpdateForm
+    elif request.user.role == 'doctor':
+        profile_instance = request.user.doctorprofile
+        form_class = DoctorProfileUpdateForm
+    else: # Admin or other roles
+        messages.error(request, 'Only Patients and Doctors can edit their profiles.')
+        return redirect('profile')
+
+    if request.method == 'POST':
+        form = form_class(request.POST, instance=profile_instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('profile')
+    else:
+        form = form_class(instance=profile_instance)
+
+    context = {'form': form}
+    return render(request, 'profile_edit.html', context)

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 
 {% block title %}My Profile{% endblock %}
 
@@ -47,7 +47,7 @@
                     </ul>
 
                     <div class="mt-4">
-                        <a href="#" class="btn btn-secondary">Edit Profile</a>
+                        <a href="{% url 'profile_edit' %}" class="btn btn-secondary">Edit Profile</a>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
@@ -8,50 +8,66 @@
     <p class="lead mb-5">Welcome, {{ user.username }}. Here is a real-time overview of the system.</p>
 
     <div class="row g-4">
-        <div class="col-md-6 col-lg-3">
-            <div class="card text-white bg-primary shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x mb-3"></i>
-                    <h2 class="card-title">{{ patient_count }}</h2>
-                    <p class="card-text fs-5">Total Patients</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <div class="card text-white bg-success shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-md fa-3x mb-3"></i>
-                    <h2 class="card-title">{{ doctor_count }}</h2>
-                    <p class="card-text fs-5">Total Doctors</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <div class="card text-dark bg-warning shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x mb-3"></i>
-                    <h2 class="card-title">{{ pending_requests_count }}</h2>
-                    <p class="card-text fs-5">Pending Requests</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <div class="card text-white bg-secondary shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-check-circle fa-3x mb-3"></i>
-                    <h2 class="card-title">{{ completed_requests_count }}</h2>
-                    <p class="card-text fs-5">Completed Requests</p>
-                </div>
-            </div>
-        </div>
+        <div class="col-md-6 col-lg-3"><div class="card text-white bg-primary shadow-sm h-100"><div class="card-body text-center"><i class="fas fa-users fa-3x mb-3"></i><h2 class="card-title">{{ patient_count }}</h2><p class="card-text fs-5">Total Patients</p></div></div></div>
+        <div class="col-md-6 col-lg-3"><div class="card text-white bg-success shadow-sm h-100"><div class="card-body text-center"><i class="fas fa-user-md fa-3x mb-3"></i><h2 class="card-title">{{ doctor_count }}</h2><p class="card-text fs-5">Total Doctors</p></div></div></div>
+        <div class="col-md-6 col-lg-3"><div class="card text-dark bg-warning shadow-sm h-100"><div class="card-body text-center"><i class="fas fa-clock fa-3x mb-3"></i><h2 class="card-title">{{ pending_requests_count }}</h2><p class="card-text fs-5">Pending Requests</p></div></div></div>
+        <div class="col-md-6 col-lg-3"><div class="card text-white bg-secondary shadow-sm h-100"><div class="card-body text-center"><i class="fas fa-check-circle fa-3x mb-3"></i><h2 class="card-title">{{ completed_requests_count }}</h2><p class="card-text fs-5">Completed Requests</p></div></div></div>
     </div>
 
-    <div class="mt-5">
-        <h4>System Management</h4>
-        <p>To manage users, requests, and other system data in detail, please use the <a href="/admin/">Django Administration Panel</a>.</p>
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title"><i class="fas fa-chart-bar me-2"></i>Help Requests in the Last 7 Days</h4>
+                    <canvas id="requestsChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Get the canvas element
+    const ctx = document.getElementById('requestsChart').getContext('2d');
+
+    // Get data from our Django view. The |safe filter is crucial to render the JSON correctly.
+    const chartLabels = {{ chart_labels|safe }};
+    const chartData = {{ chart_data|safe }};
+
+    // Create the chart
+    new Chart(ctx, {
+        type: 'bar', // We can use 'line', 'pie', etc.
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: '# of Requests',
+                data: chartData,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        // Ensure y-axis only shows whole numbers
+                        stepSize: 1
+                    }
+                }
+            },
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false // We can hide the legend for a cleaner look
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

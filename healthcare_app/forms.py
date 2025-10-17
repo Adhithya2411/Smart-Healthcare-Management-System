@@ -109,3 +109,22 @@ class PrescriptionForm(forms.ModelForm):
             'diagnosis': 'Diagnosis',
             'prescription_text': 'Prescription & Advice'
         }
+
+class PatientProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = PatientProfile
+        fields = ['age', 'gender', 'contact']
+        widgets = {
+            'age': forms.NumberInput(attrs={'class': 'form-control'}),
+            'gender': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class DoctorProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = DoctorProfile
+        fields = ['specialty', 'years_of_experience']
+        widgets = {
+            'specialty': forms.TextInput(attrs={'class': 'form-control'}),
+            'years_of_experience': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
