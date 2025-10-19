@@ -8,7 +8,7 @@ from .decorators import role_required # Our custom role checker
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateForm, DoctorProfileUpdateForm
-from .models import User,HelpRequest,Prescription,Symptom, SymptomOption, Suggestion
+from .models import User,HelpRequest,Prescription,Symptom, SymptomOption, Suggestion,PatientMedicalHistory
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from datetime import timedelta
@@ -58,89 +58,111 @@ class CustomLoginView(LoginView):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_dashboard(request):
-    # Stat card counts (same as before)
+    # --- 1. Data for Stat Cards ---
     patient_count = User.objects.filter(role='patient').count()
     doctor_count = User.objects.filter(role='doctor').count()
     pending_requests_count = HelpRequest.objects.filter(status='Pending').count()
     completed_requests_count = HelpRequest.objects.filter(status='Answered').count()
 
-    # --- New Logic for Chart Data ---
-    # Calculate the date 7 days ago
+    # --- 2. Data for Bar Chart (Requests per Day) ---
     seven_days_ago = timezone.now().date() - timedelta(days=6)
-    
-    # Query for help requests in the last 7 days, grouped by day
-    requests_per_day = (
+    requests_per_day_query = (
         HelpRequest.objects.filter(requested_at__date__gte=seven_days_ago)
         .annotate(date=TruncDate('requested_at'))
         .values('date')
         .annotate(count=Count('id'))
         .order_by('date')
     )
+    requests_data = { (seven_days_ago + timedelta(days=i)).strftime('%b %d'): 0 for i in range(7) }
+    for entry in requests_per_day_query:
+        requests_data[entry['date'].strftime('%b %d')] = entry['count']
+    bar_chart_labels = list(requests_data.keys())
+    bar_chart_data = list(requests_data.values())
 
-    # Create a dictionary to hold data for all last 7 days, initialized to 0
-    requests_data = { (seven_days_ago + timedelta(days=i)): 0 for i in range(7) }
-    
-    # Populate the dictionary with actual counts from the query
-    for entry in requests_per_day:
-        requests_data[entry['date']] = entry['count']
+    # --- 3. Data for Pie Chart (Request Status Breakdown) ---
+    pie_chart_labels = ['Pending', 'Answered']
+    pie_chart_data = [pending_requests_count, completed_requests_count]
 
-    # Prepare labels and data for Chart.js
-    chart_labels = [date.strftime('%b %d') for date in requests_data.keys()]
-    chart_data = list(requests_data.values())
+    # --- 4. Data for User Management Table ---
+    # Fetch the 5 most recently joined patients and doctors
+    latest_patients = User.objects.filter(role='patient').order_by('-date_joined')[:5]
+    latest_doctors = User.objects.filter(role='doctor').order_by('-date_joined')[:5]
 
     context = {
         'patient_count': patient_count,
         'doctor_count': doctor_count,
         'pending_requests_count': pending_requests_count,
         'completed_requests_count': completed_requests_count,
-        # Add the chart data to the context, converting it to JSON
-        'chart_labels': json.dumps(chart_labels),
-        'chart_data': json.dumps(chart_data),
+        'bar_chart_labels': json.dumps(bar_chart_labels),
+        'bar_chart_data': json.dumps(bar_chart_data),
+        'pie_chart_labels': json.dumps(pie_chart_labels),
+        'pie_chart_data': json.dumps(pie_chart_data),
+        'latest_patients': latest_patients,
+        'latest_doctors': latest_doctors,
     }
     return render(request, 'admin_dashboard.html', context)
 
 @login_required
 @role_required(allowed_roles=['doctor'])
 def doctor_dashboard(request):
-    # Fetch all help requests that have the status 'Pending'
-    # Order them by the oldest first, to create a queue
+    doctor_profile = request.user.doctorprofile
+
+    # --- 1. Data for Stat Cards ---
+    # Count requests assigned to this specific doctor
+    answered_by_me_count = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').count()
+
+    # --- 2. Data for the "Pending" Table ---
+    # Fetch all help requests that are not yet assigned to any doctor
     pending_requests = HelpRequest.objects.filter(status='Pending').order_by('requested_at')
-    
+    pending_count = pending_requests.count()
+
+    # --- 3. Data for the "My History" Table ---
+    # Fetch all requests this doctor has already answered
+    answered_requests = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').order_by('-prescription__prescribed_at')
+
     context = {
-        'pending_requests': pending_requests
+        'answered_by_me_count': answered_by_me_count,
+        'pending_count': pending_count,
+        'pending_requests': pending_requests,
+        'answered_requests': answered_requests,
     }
     return render(request, 'doctor_dashboard.html', context)
-
 @login_required
 @role_required(allowed_roles=['patient'])
 def patient_dashboard(request):
-    # Get the profile of the currently logged-in patient
     patient_profile = request.user.patientprofile
 
-    # Handle the form submission (when the user clicks "Submit Request")
+    # Handle the form submission (This part is the same)
     if request.method == 'POST':
         form = HelpRequestForm(request.POST)
         if form.is_valid():
-            # Create a model instance but don't save to the DB yet
             new_request = form.save(commit=False)
-            # Assign the current patient to the request before saving
             new_request.patient = patient_profile
             new_request.save()
-            
             messages.success(request, 'Your help request has been submitted successfully!')
             return redirect('patient_dashboard')
     else:
-        # Handle the initial page load by creating a blank form
         form = HelpRequestForm()
 
-    # Get all past requests for this patient to display in a list
+    # --- 1. Data for Stat Cards ---
+    pending_count = HelpRequest.objects.filter(patient=patient_profile, status='Pending').count()
+    answered_count = HelpRequest.objects.filter(patient=patient_profile, status='Answered').count()
+
+    # --- 2. Data for "Request History" ---
     past_requests = HelpRequest.objects.filter(patient=patient_profile).order_by('-requested_at')
-    
+
+    # --- 3. Data for "Medical History" ---
+    medical_history = PatientMedicalHistory.objects.filter(patient=patient_profile).order_by('-recorded_at')
+
     context = {
         'form': form,
-        'past_requests': past_requests
+        'past_requests': past_requests,
+        'medical_history': medical_history,
+        'pending_count': pending_count,
+        'answered_count': answered_count,
     }
     return render(request, 'patient_dashboard.html', context)
+# In healthcare_app/views.py
 
 # In healthcare_app/views.py
 
@@ -148,9 +170,26 @@ def patient_dashboard(request):
 @role_required(allowed_roles=['doctor'])
 def request_detail_view(request, request_id):
     help_request = get_object_or_404(HelpRequest, id=request_id)
+    patient_profile = help_request.patient
+
+    # --- NEW: Fetch patient's complete history ---
+    # 1. Fetch long-term medical conditions
+    medical_history = PatientMedicalHistory.objects.filter(
+        patient=patient_profile
+    ).order_by('-recorded_at')
     
+    # 2. Fetch past answered requests (excluding the current one)
+    past_answered_requests = HelpRequest.objects.filter(
+        patient=patient_profile, 
+        status='Answered'
+    ).exclude(id=request_id).order_by('-prescription__prescribed_at')[:5] # Limit to 5 recent
+
     # Initialize context and form variables
-    context = {'help_request': help_request}
+    context = {
+        'help_request': help_request,
+        'medical_history': medical_history,
+        'past_answered_requests': past_answered_requests,
+    }
     form = None
     
     # Check if the request is still pending
@@ -162,7 +201,6 @@ def request_detail_view(request, request_id):
                 new_prescription.help_request = help_request
                 new_prescription.save()
                 
-                # Update request status and assign the doctor
                 help_request.status = 'Answered'
                 help_request.doctor = request.user.doctorprofile
                 help_request.save()
@@ -170,14 +208,11 @@ def request_detail_view(request, request_id):
                 messages.success(request, 'Your response has been submitted successfully!')
                 return redirect('doctor_dashboard')
         else:
-            # If it's a GET request for a pending item, show the blank form
             form = PrescriptionForm()
         
-        # Add the form to the context only if the request is pending
         context['form'] = form
     else:
-        # If the request is NOT pending, fetch the existing prescription to display it
-        # The 'prescription' related name comes from the OneToOneField on the Prescription model
+        # If the request is NOT pending, fetch the existing prescription
         existing_prescription = get_object_or_404(Prescription, help_request=help_request)
         context['prescription'] = existing_prescription
 
