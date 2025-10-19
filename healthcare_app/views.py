@@ -2,7 +2,7 @@
 
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from .forms import SignUpForm,PrescriptionForm
+from .forms import SignUpForm,PrescriptionForm,ProfilePictureUpdateForm
 from django.contrib.auth.decorators import login_required # For basic login check
 from .decorators import role_required # Our custom role checker
 from django.contrib.auth.views import LoginView
@@ -288,3 +288,27 @@ def profile_edit_view(request):
 
     context = {'form': form}
     return render(request, 'profile_edit.html', context)
+
+@login_required
+def profile_picture_upload_view(request):
+    # Get the correct profile based on the user's role
+    if hasattr(request.user, 'patientprofile'):
+        profile_instance = request.user.patientprofile
+    elif hasattr(request.user, 'doctorprofile'):
+        profile_instance = request.user.doctorprofile
+    else:
+        messages.error(request, 'No valid profile found to update.')
+        return redirect('profile')
+
+    if request.method == 'POST':
+        # request.FILES is used for file uploads
+        form = ProfilePictureUpdateForm(request.POST, request.FILES, instance=profile_instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile picture has been updated!')
+            return redirect('profile')
+    else:
+        form = ProfilePictureUpdateForm(instance=profile_instance)
+
+    context = {'form': form}
+    return render(request, 'profile_picture_upload.html', context)

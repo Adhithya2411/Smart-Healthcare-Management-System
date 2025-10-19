@@ -128,3 +128,10 @@ class DoctorProfileUpdateForm(forms.ModelForm):
             'specialty': forms.TextInput(attrs={'class': 'form-control'}),
             'years_of_experience': forms.NumberInput(attrs={'class': 'form-control'}),
         }
+
+class ProfilePictureUpdateForm(forms.ModelForm):
+    class Meta:
+        # We can use either profile model, as the field is the same.
+        # This form will be used to update the 'profile_picture' field only.
+        model = PatientProfile 
+        fields = ['profile_picture']

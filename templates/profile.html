@@ -10,12 +10,17 @@
                 <div class="card-header bg-primary text-white">
                     <h2 class="h4 mb-0"><i class="fas fa-user-circle me-2"></i>My Profile</h2>
                 </div>
-                <div class="card-body">
+                
+                <div class="card-body text-center"> 
+                    {% if user.role == 'patient' %}
+                        <img src="{{ user.patientprofile.profile_picture.url }}" class="rounded-circle mb-3" width="120" height="120" alt="Avatar" style="object-fit: cover;">
+                    {% elif user.role == 'doctor' %}
+                        <img src="{{ user.doctorprofile.profile_picture.url }}" class="rounded-circle mb-3" width="120" height="120" alt="Avatar" style="object-fit: cover;">
+                    {% endif %}
                     <h3 class="card-title">{{ user.get_full_name|default:user.username }}</h3>
                     <h6 class="card-subtitle mb-4 text-muted">{{ user.get_role_display }}</h6>
                     
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
+                    <ul class="list-group list-group-flush text-start"> <li class="list-group-item">
                             <strong>Username:</strong> {{ user.username }}
                         </li>
                         <li class="list-group-item">
@@ -47,11 +52,12 @@
                     </ul>
 
                     <div class="mt-4">
-                        <a href="{% url 'profile_edit' %}" class="btn btn-secondary">Edit Profile</a>
+                        <a href="{% url 'profile_edit' %}" class="btn btn-secondary">Edit Profile Details</a>
+                        <a href="{% url 'profile_picture_upload' %}" class="btn btn-outline-primary">Change Picture</a>
+                    </div>
+                    </div>
                     </div>
                 </div>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}
