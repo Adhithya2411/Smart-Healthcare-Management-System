@@ -16,7 +16,18 @@
                     <h5 class="card-title">{{ help_request.patient.user.get_full_name|default:help_request.patient.user.username }}</h5>
                     <h6 class="card-subtitle mb-3 text-muted">Submitted: {{ help_request.requested_at|date:"F d, Y" }}</h6>
                     <p class="card-text border-top pt-3"><strong>Current Issue:</strong><br>{{ help_request.issue_description }}</p>
-                </div>
+
+                    {% if help_request.attachment %}
+                        <div class="border-top pt-3">
+                            <strong>Attachment:</strong>
+                            <div class="mt-2">
+                                <a href="{{ help_request.attachment.url }}" target="_blank" title="Click to view full image">
+                                    <img src="{{ help_request.attachment.url }}" alt="Patient attachment" class="img-fluid rounded border" style="max-height: 200px;">
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    </div>
             </div>
 
             <div class="card shadow-sm">

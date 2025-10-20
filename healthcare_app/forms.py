@@ -78,18 +78,20 @@ class HelpRequestForm(forms.ModelForm):
     class Meta:
         model = HelpRequest
         # We only want the patient to fill out the description. The rest is automatic.
-        fields = ['specialty', 'issue_description']
+        fields = ['specialty', 'issue_description', 'attachment']
         widgets = {
             'specialty': forms.Select(attrs={'class': 'form-select'}),
             'issue_description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 5,
+                'rows': 4,
                 'placeholder': 'Please describe your medical issue in detail...'
             }),
+            'attachment': forms.FileInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'specialty': 'Select a Medical Specialty',
-            'issue_description': 'Your Medical Concern'
+            'issue_description': 'Your Medical Concern',
+            'attachment': 'Add an Attachment (Optional)',
         }
 
 class PrescriptionForm(forms.ModelForm):

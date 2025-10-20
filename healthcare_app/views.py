@@ -143,7 +143,7 @@ def patient_dashboard(request):
 
     # Handle the form submission (This part is the same)
     if request.method == 'POST':
-        form = HelpRequestForm(request.POST)
+        form = HelpRequestForm(request.POST, request.FILES)
         if form.is_valid():
             new_request = form.save(commit=False)
             new_request.patient = patient_profile

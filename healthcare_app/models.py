@@ -55,6 +55,7 @@ class HelpRequest(models.Model):
     requested_at = models.DateTimeField(auto_now_add=True)
 
     specialty = models.CharField(max_length=50, choices=SPECIALTY_CHOICES, default='General Medicine')
+    attachment = models.ImageField(upload_to='attachments/', null=True, blank=True)
 
     def __str__(self):
         return f"Request from {self.patient.user.username} - Status: {self.status}"
