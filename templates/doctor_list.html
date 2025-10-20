@@ -1,0 +1,33 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Find a Doctor{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Book an Appointment</h1>
+    <p class="lead mb-5">Select a doctor to view their available schedule.</p>
+
+    <div class="row g-4">
+        {% if doctors %}
+            {% for doctor in doctors %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm text-center">
+                        <div class="card-body">
+                            <img src="{{ doctor.profile_picture.url }}" class="rounded-circle mb-3" width="100" height="100" alt="Doctor Avatar" style="object-fit: cover;">
+                            <h5 class="card-title">Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialty }}</h6>
+                            <p class="card-text text-muted small">{{ doctor.years_of_experience }} years of experience</p>
+                            
+                            <a href="{% url 'doctor_schedule' doctor.user.id %}" class="btn btn-primary">View Schedule</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">No doctors are available at the moment.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

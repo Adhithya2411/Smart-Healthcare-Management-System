@@ -6,6 +6,7 @@
 <div class="container-fluid">
     <h1 class="mb-4">Patient Dashboard</h1>
 
+    
     <div class="row g-4 mb-5">
         <div class="col-md-6">
             <div class="card text-dark bg-warning shadow-sm h-100">
@@ -27,6 +28,15 @@
         </div>
     </div>
 
+    {% if upcoming_appointments %}
+    <div class="alert alert-info shadow-sm mb-5">
+        <h5 class="alert-heading"><i class="fas fa-calendar-check me-2"></i>Your Upcoming Appointment</h5>
+        {% for appointment in upcoming_appointments|slice:":1" %}
+            You have an appointment with <strong>Dr. {{ appointment.timeslot.doctor.user.get_full_name }}</strong> on <strong>{{ appointment.timeslot.start_time|date:"l, F d" }}</strong> at <strong>{{ appointment.timeslot.start_time|date:"g:i A" }}</strong>.
+        {% endfor %}
+    </div>
+    {% endif %}
+    
     <div class="row g-5">
         <div class="col-lg-5">
             <div class="card shadow-sm">

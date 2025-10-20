@@ -99,3 +99,21 @@ class Suggestion(models.Model):
 
     def __str__(self):
         return f"Suggestion for {self.option.option_text}"
+    
+
+class TimeSlot(models.Model):
+    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name='timeslots')
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    is_booked = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Slot for Dr. {self.doctor.user.username} from {self.start_time.strftime('%Y-%m-%d %H:%M')} to {self.end_time.strftime('%H:%M')}"
+
+class Appointment(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name='appointments')
+    timeslot = models.OneToOneField(TimeSlot, on_delete=models.CASCADE, related_name='appointment')
+    reason = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Appointment for {self.patient.user.username} with Dr. {self.timeslot.doctor.user.username}"

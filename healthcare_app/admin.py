@@ -4,7 +4,7 @@ from django.contrib import admin
 from .models import (
     User, DoctorProfile, PatientProfile, 
     HelpRequest, Prescription, PatientMedicalHistory,
-    Symptom, SymptomOption, Suggestion 
+    Symptom, SymptomOption, Suggestion, TimeSlot, Appointment
 )
 
 # Register your models here.
@@ -17,3 +17,6 @@ admin.site.register(PatientMedicalHistory)
 admin.site.register(Symptom)         
 admin.site.register(SymptomOption)      
 admin.site.register(Suggestion)
+
+admin.site.register(TimeSlot)
+admin.site.register(Appointment)

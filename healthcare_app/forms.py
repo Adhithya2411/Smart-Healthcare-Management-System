@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription
+from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription,TimeSlot
 
 class SignUpForm(UserCreationForm):
     ROLE_CHOICES = (
@@ -139,3 +139,13 @@ class ProfilePictureUpdateForm(forms.ModelForm):
         # This form will be used to update the 'profile_picture' field only.
         model = PatientProfile 
         fields = ['profile_picture']
+
+class TimeSlotForm(forms.ModelForm):
+    class Meta:
+        model = TimeSlot
+        fields = ['start_time', 'end_time']
+        widgets = {
+            # Use HTML5 datetime-local input for a nice user experience
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }

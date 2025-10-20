@@ -14,7 +14,11 @@ from .views import (
     profile_view,
     profile_edit_view,
     profile_picture_upload_view,
-    assign_request_view
+    assign_request_view,
+    manage_schedule_view,
+    doctor_list_view,
+    doctor_schedule_view,
+    book_appointment_view
 )
 
 urlpatterns = [
@@ -37,4 +41,9 @@ urlpatterns = [
     path('profile/edit/', profile_edit_view, name='profile_edit'),
     path('profile/upload-picture/', profile_picture_upload_view, name='profile_picture_upload'),
     path('request/<int:request_id>/assign/', assign_request_view, name='assign_request'),
+    path('schedule/manage/', manage_schedule_view, name='manage_schedule'),
+
+    path('doctors/', doctor_list_view, name='doctor_list'),
+    path('doctors/<int:doctor_id>/schedule/', doctor_schedule_view, name='doctor_schedule'),
+    path('appointment/book/<int:slot_id>/', book_appointment_view, name='book_appointment'),
 ]

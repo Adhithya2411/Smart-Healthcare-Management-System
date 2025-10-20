@@ -7,11 +7,12 @@ from django.contrib.auth.decorators import login_required # For basic login chec
 from .decorators import role_required # Our custom role checker
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from .forms import SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateForm, DoctorProfileUpdateForm
-from .models import User,HelpRequest,Prescription,Symptom, SymptomOption, Suggestion,PatientMedicalHistory
+from .forms import SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateForm, DoctorProfileUpdateForm,TimeSlotForm
+from .models import (User,HelpRequest,Prescription,Symptom, SymptomOption, 
+                     Suggestion,PatientMedicalHistory,TimeSlot,DoctorProfile,Appointment)
 from django.db.models import Count
 from django.db.models.functions import TruncDate
-from datetime import timedelta
+from datetime import date,timedelta
 from django.utils import timezone
 import json
 
@@ -125,6 +126,10 @@ def doctor_dashboard(request):
         status='Answered'
     ).order_by('-prescription__prescribed_at')
 
+    upcoming_appointments = Appointment.objects.filter(
+        timeslot__doctor=doctor_profile,
+        timeslot__start_time__gte=timezone.now()
+    ).order_by('timeslot__start_time')
     # --- Update the context ---
     context = {
         'pending_requests': pending_requests,
@@ -133,6 +138,7 @@ def doctor_dashboard(request):
         'pending_count': pending_requests.count(),
         'active_count': active_requests.count(),
         'answered_by_me_count': answered_requests.count(),
+        'upcoming_appointments': upcoming_appointments,
     }
     return render(request, 'doctor_dashboard.html', context)
 
@@ -163,12 +169,18 @@ def patient_dashboard(request):
     # --- 3. Data for "Medical History" ---
     medical_history = PatientMedicalHistory.objects.filter(patient=patient_profile).order_by('-recorded_at')
 
+    upcoming_appointments = Appointment.objects.filter(
+        patient=patient_profile,
+        timeslot__start_time__gte=timezone.now()
+    ).order_by('timeslot__start_time')
+
     context = {
         'form': form,
         'past_requests': past_requests,
         'medical_history': medical_history,
         'pending_count': pending_count,
         'answered_count': answered_count,
+        'upcoming_appointments': upcoming_appointments,
     }
     return render(request, 'patient_dashboard.html', context)
 # In healthcare_app/views.py
@@ -335,3 +347,87 @@ def assign_request_view(request, request_id):
 
     # If it's a GET request, just redirect away
     return redirect('doctor_dashboard')
+
+@login_required
+@role_required(allowed_roles=['doctor'])
+def manage_schedule_view(request):
+    doctor_profile = request.user.doctorprofile
+    
+    if request.method == 'POST':
+        form = TimeSlotForm(request.POST)
+        if form.is_valid():
+            timeslot = form.save(commit=False)
+            timeslot.doctor = doctor_profile
+            timeslot.save()
+            messages.success(request, 'New time slot added successfully!')
+            return redirect('manage_schedule')
+    else:
+        form = TimeSlotForm()
+
+    # Get today's date and the start/end of the current week
+    today = date.today()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+
+    # Fetch all timeslots for the current week
+    timeslots = TimeSlot.objects.filter(
+        doctor=doctor_profile,
+        start_time__date__range=[start_of_week, end_of_week]
+    ).order_by('start_time')
+
+    context = {
+        'form': form,
+        'timeslots': timeslots,
+        'current_week': f"{start_of_week.strftime('%b %d')} - {end_of_week.strftime('%b %d, %Y')}"
+    }
+    return render(request, 'manage_schedule.html', context)
+
+@login_required
+@role_required(allowed_roles=['patient'])
+def doctor_list_view(request):
+    doctors = DoctorProfile.objects.all()
+    context = {
+        'doctors': doctors,
+    }
+    return render(request, 'doctor_list.html', context)
+
+@login_required
+@role_required(allowed_roles=['patient'])
+def doctor_schedule_view(request, doctor_id):
+    doctor = get_object_or_404(DoctorProfile, user_id=doctor_id)
+
+    # Fetch all available (not booked) timeslots for this doctor from today onwards
+    today = timezone.now()
+    available_slots = TimeSlot.objects.filter(
+        doctor=doctor,
+        start_time__gte=today,
+        is_booked=False
+    ).order_by('start_time')
+
+    context = {
+        'doctor': doctor,
+        'available_slots': available_slots,
+    }
+    return render(request, 'doctor_schedule.html', context)
+
+@login_required
+@role_required(allowed_roles=['patient'])
+def book_appointment_view(request, slot_id):
+    # Ensure the request is a POST request for security
+    if request.method == 'POST':
+        # Find the timeslot, ensuring it is not already booked
+        timeslot = get_object_or_404(TimeSlot, id=slot_id, is_booked=False)
+        patient_profile = request.user.patientprofile
+        
+        # Create the new appointment
+        Appointment.objects.create(patient=patient_profile, timeslot=timeslot)
+        
+        # Mark the timeslot as booked
+        timeslot.is_booked = True
+        timeslot.save()
+        
+        messages.success(request, f"Your appointment with Dr. {timeslot.doctor.user.get_full_name()} has been booked successfully!")
+        return redirect('patient_dashboard')
+
+    # If it's a GET request, just redirect away
+    return redirect('doctor_list')
