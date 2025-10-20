@@ -107,17 +107,16 @@ def admin_dashboard(request):
 def doctor_dashboard(request):
     doctor_profile = request.user.doctorprofile
 
-    # --- 1. Data for Stat Cards ---
-    # Count requests assigned to this specific doctor
+    # --- NEW: Intelligent Filtering Logic ---
+    # Fetch only the pending requests that match this doctor's specialty.
+    pending_requests = HelpRequest.objects.filter(
+        status='Pending',
+        specialty=doctor_profile.specialty
+    ).order_by('requested_at')
+
+    # The rest of the logic remains the same
     answered_by_me_count = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').count()
-
-    # --- 2. Data for the "Pending" Table ---
-    # Fetch all help requests that are not yet assigned to any doctor
-    pending_requests = HelpRequest.objects.filter(status='Pending').order_by('requested_at')
     pending_count = pending_requests.count()
-
-    # --- 3. Data for the "My History" Table ---
-    # Fetch all requests this doctor has already answered
     answered_requests = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').order_by('-prescription__prescribed_at')
 
     context = {
@@ -127,6 +126,7 @@ def doctor_dashboard(request):
         'answered_requests': answered_requests,
     }
     return render(request, 'doctor_dashboard.html', context)
+
 @login_required
 @role_required(allowed_roles=['patient'])
 def patient_dashboard(request):

@@ -78,8 +78,9 @@ class HelpRequestForm(forms.ModelForm):
     class Meta:
         model = HelpRequest
         # We only want the patient to fill out the description. The rest is automatic.
-        fields = ['issue_description']
+        fields = ['specialty', 'issue_description']
         widgets = {
+            'specialty': forms.Select(attrs={'class': 'form-select'}),
             'issue_description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 5,
@@ -87,6 +88,7 @@ class HelpRequestForm(forms.ModelForm):
             }),
         }
         labels = {
+            'specialty': 'Select a Medical Specialty',
             'issue_description': 'Your Medical Concern'
         }
 

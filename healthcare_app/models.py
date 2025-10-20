@@ -28,11 +28,20 @@ class PatientProfile(models.Model):
     contact = models.CharField(max_length=15, null=True, blank=True)
 
     profile_picture = models.ImageField(default='images/default_avatar.png', upload_to='profile_pics/')
-    
+
     def __str__(self):
         return self.user.username
 
 class HelpRequest(models.Model):
+
+    SPECIALTY_CHOICES = (
+        ('General Medicine', 'General Medicine'),
+        ('Dermatology', 'Dermatology'),
+        ('Orthopedics', 'Orthopedics'),
+        ('Cardiology', 'Cardiology'),
+        ('Neurology', 'Neurology'),
+    )
+
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
         ('Answered', 'Answered'),
@@ -44,6 +53,8 @@ class HelpRequest(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
     requested_at = models.DateTimeField(auto_now_add=True)
 
+    specialty = models.CharField(max_length=50, choices=SPECIALTY_CHOICES, default='General Medicine')
+    
     def __str__(self):
         return f"Request from {self.patient.user.username} - Status: {self.status}"
 
