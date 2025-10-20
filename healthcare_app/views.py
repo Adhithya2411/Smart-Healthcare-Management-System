@@ -107,23 +107,32 @@ def admin_dashboard(request):
 def doctor_dashboard(request):
     doctor_profile = request.user.doctorprofile
 
-    # --- NEW: Intelligent Filtering Logic ---
-    # Fetch only the pending requests that match this doctor's specialty.
+    # Fetch pending requests that match this doctor's specialty
     pending_requests = HelpRequest.objects.filter(
         status='Pending',
         specialty=doctor_profile.specialty
     ).order_by('requested_at')
 
-    # The rest of the logic remains the same
-    answered_by_me_count = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').count()
-    pending_count = pending_requests.count()
-    answered_requests = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').order_by('-prescription__prescribed_at')
+    # --- NEW: Fetch requests this doctor has claimed ---
+    active_requests = HelpRequest.objects.filter(
+        doctor=doctor_profile,
+        status='In Progress'
+    ).order_by('requested_at')
 
+    # Fetch requests this doctor has already answered
+    answered_requests = HelpRequest.objects.filter(
+        doctor=doctor_profile, 
+        status='Answered'
+    ).order_by('-prescription__prescribed_at')
+
+    # --- Update the context ---
     context = {
-        'answered_by_me_count': answered_by_me_count,
-        'pending_count': pending_count,
         'pending_requests': pending_requests,
+        'active_requests': active_requests,
         'answered_requests': answered_requests,
+        'pending_count': pending_requests.count(),
+        'active_count': active_requests.count(),
+        'answered_by_me_count': answered_requests.count(),
     }
     return render(request, 'doctor_dashboard.html', context)
 
@@ -166,25 +175,23 @@ def patient_dashboard(request):
 
 # In healthcare_app/views.py
 
+# In healthcare_app/views.py
+
 @login_required
 @role_required(allowed_roles=['doctor'])
 def request_detail_view(request, request_id):
     help_request = get_object_or_404(HelpRequest, id=request_id)
     patient_profile = help_request.patient
 
-    # --- NEW: Fetch patient's complete history ---
-    # 1. Fetch long-term medical conditions
     medical_history = PatientMedicalHistory.objects.filter(
         patient=patient_profile
     ).order_by('-recorded_at')
     
-    # 2. Fetch past answered requests (excluding the current one)
     past_answered_requests = HelpRequest.objects.filter(
         patient=patient_profile, 
         status='Answered'
-    ).exclude(id=request_id).order_by('-prescription__prescribed_at')[:5] # Limit to 5 recent
+    ).exclude(id=request_id).order_by('-prescription__prescribed_at')[:5]
 
-    # Initialize context and form variables
     context = {
         'help_request': help_request,
         'medical_history': medical_history,
@@ -192,8 +199,8 @@ def request_detail_view(request, request_id):
     }
     form = None
     
-    # Check if the request is still pending
-    if help_request.status == 'Pending':
+    # Show the form if the request is waiting in the queue OR if it's assigned to you.
+    if help_request.status in ['Pending', 'In Progress']:
         if request.method == 'POST':
             form = PrescriptionForm(request.POST)
             if form.is_valid():
@@ -211,8 +218,7 @@ def request_detail_view(request, request_id):
             form = PrescriptionForm()
         
         context['form'] = form
-    else:
-        # If the request is NOT pending, fetch the existing prescription
+    else: # This will now only run for "Answered" or "Closed" requests
         existing_prescription = get_object_or_404(Prescription, help_request=help_request)
         context['prescription'] = existing_prescription
 
@@ -312,3 +318,20 @@ def profile_picture_upload_view(request):
 
     context = {'form': form}
     return render(request, 'profile_picture_upload.html', context)
+
+login_required
+@role_required(allowed_roles=['doctor'])
+def assign_request_view(request, request_id):
+    # Find the request, ensuring it's still pending
+    help_request = get_object_or_404(HelpRequest, id=request_id, status='Pending')
+    
+    if request.method == 'POST':
+        # Assign the current doctor and update the status
+        help_request.doctor = request.user.doctorprofile
+        help_request.status = 'In Progress'
+        help_request.save()
+        messages.success(request, f"Request from '{help_request.patient.user.username}' has been assigned to you.")
+        return redirect('doctor_dashboard')
+
+    # If it's a GET request, just redirect away
+    return redirect('doctor_dashboard')

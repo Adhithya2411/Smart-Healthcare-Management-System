@@ -44,17 +44,18 @@ class HelpRequest(models.Model):
 
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
+        ('In Progress', 'In Progress'),
         ('Answered', 'Answered'),
         ('Closed', 'Closed'),
     )
     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE)
     doctor = models.ForeignKey(DoctorProfile, on_delete=models.SET_NULL, null=True, blank=True)
     issue_description = models.TextField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     requested_at = models.DateTimeField(auto_now_add=True)
 
     specialty = models.CharField(max_length=50, choices=SPECIALTY_CHOICES, default='General Medicine')
-    
+
     def __str__(self):
         return f"Request from {self.patient.user.username} - Status: {self.status}"
 

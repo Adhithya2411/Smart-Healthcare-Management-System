@@ -4,87 +4,72 @@
 
 {% block content %}
 <div class="container-fluid">
+    {% if messages %}{% for message in messages %}<div class="alert alert-success">{{ message }}</div>{% endfor %}{% endif %}
     <h1 class="mb-4">Doctor Dashboard</h1>
 
     <div class="row g-4 mb-5">
-        <div class="col-md-6">
-            <div class="card text-dark bg-warning shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x mb-3"></i>
-                    <h2 class="card-title">{{ pending_count }}</h2>
-                    <p class="card-text fs-5">Pending Requests (All)</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card text-white bg-success shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-check-double fa-3x mb-3"></i>
-                    <h2 class="card-title">{{ answered_by_me_count }}</h2>
-                    <p class="card-text fs-5">Requests You've Answered</p>
-                </div>
-            </div>
-        </div>
+        <div class="col-md-4"><div class="card text-dark bg-warning shadow-sm h-100"><div class="card-body text-center"><i class="fas fa-clock fa-3x mb-3"></i><h2 class="card-title">{{ pending_count }}</h2><p class="card-text fs-5">Pending in My Specialty</p></div></div></div>
+        <div class="col-md-4"><div class="card text-white bg-info shadow-sm h-100"><div class="card-body text-center"><i class="fas fa-user-clock fa-3x mb-3"></i><h2 class="card-title">{{ active_count }}</h2><p class="card-text fs-5">My Active Cases</p></div></div></div>
+        <div class="col-md-4"><div class="card text-white bg-success shadow-sm h-100"><div class="card-body text-center"><i class="fas fa-check-double fa-3x mb-3"></i><h2 class="card-title">{{ answered_by_me_count }}</h2><p class="card-text fs-5">My Answered History</p></div></div></div>
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header">
-            <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="true">
-                        <i class="fas fa-clipboard-list me-2"></i>Pending Queue
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
-                        <i class="fas fa-history me-2"></i>My Answered History
-                    </button>
-                </li>
-            </ul>
-        </div>
-        <div class="card-body">
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
-                    {% if pending_requests %}
-                        <div class="list-group">
-                            {% for request in pending_requests %}
-                                <div class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between mb-2">
-                                        <h5 class="mb-1 text-primary"><i class="fas fa-user-injured me-2"></i>Patient: {{ request.patient.user.get_full_name|default:request.patient.user.username }}</h5>
-                                        <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i>{{ request.requested_at|date:"F d, Y" }}</small>
-                                    </div>
-                                    <p class="mb-2">{{ request.issue_description }}</p>
-                                    <a href="{% url 'request_detail' request.id %}" class="btn btn-sm btn-outline-primary">View & Respond</a>
-                                </div>
-                            {% endfor %}
+        <div class="card-header"><ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab"><i class="fas fa-clipboard-list me-2"></i>Pending Queue</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab"><i class="fas fa-user-md me-2"></i>My Active Cases</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab"><i class="fas fa-history me-2"></i>My History</button></li>
+        </ul></div>
+        <div class="card-body"><div class="tab-content" id="myTabContent">
+            
+            <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                {% if pending_requests %}
+                    {% for request in pending_requests %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1 text-primary"><i class="fas fa-user-injured me-2"></i>Patient: {{ request.patient.user.get_full_name|default:request.patient.user.username }}</h5>
+                            <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i>{{ request.requested_at|date:"F d, Y" }}</small>
+                            <p class="mb-1 mt-2">{{ request.issue_description|truncatewords:20 }}</p>
                         </div>
-                    {% else %}
-                        <div class="alert alert-info mb-0">There are no pending help requests at the moment.</div>
-                    {% endif %}
-                </div>
-                <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
-                    {% if answered_requests %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead><tr><th>Patient</th><th>Diagnosis</th><th>Date Answered</th><th>Action</th></tr></thead>
-                                <tbody>
-                                    {% for request in answered_requests %}
-                                        <tr>
-                                            <td>{{ request.patient.user.get_full_name|default:request.patient.user.username }}</td>
-                                            <td>{{ request.prescription.diagnosis }}</td>
-                                            <td>{{ request.prescription.prescribed_at|date:"F d, Y" }}</td>
-                                            <td><a href="{% url 'request_detail' request.id %}" class="btn btn-sm btn-outline-secondary">View Details</a></td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info mb-0">You have not answered any requests yet.</div>
-                    {% endif %}
-                </div>
+                        <form action="{% url 'assign_request' request.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success">Assign to Me</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                {% else %}<div class="alert alert-info mb-0">No pending requests in your specialty.</div>{% endif %}
             </div>
-        </div>
+
+            <div class="tab-pane fade" id="active" role="tabpanel">
+                {% if active_requests %}
+                    {% for request in active_requests %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1 text-primary"><i class="fas fa-user-injured me-2"></i>Patient: {{ request.patient.user.get_full_name|default:request.patient.user.username }}</h5>
+                            <p class="mb-1 mt-2">{{ request.issue_description|truncatewords:20 }}</p>
+                        </div>
+                        <a href="{% url 'request_detail' request.id %}" class="btn btn-sm btn-primary">Respond Now</a>
+                    </div>
+                    {% endfor %}
+                {% else %}<div class="alert alert-info mb-0">You have no active cases assigned to you.</div>{% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="history" role="tabpanel">
+                {% if answered_requests %}<div class="table-responsive"><table class="table table-hover">
+                    <thead><tr><th>Patient</th><th>Diagnosis</th><th>Date Answered</th><th>Action</th></tr></thead>
+                    <tbody>
+                        {% for request in answered_requests %}
+                        <tr>
+                            <td>{{ request.patient.user.get_full_name|default:request.patient.user.username }}</td>
+                            <td>{{ request.prescription.diagnosis }}</td>
+                            <td>{{ request.prescription.prescribed_at|date:"F d, Y" }}</td>
+                            <td><a href="{% url 'request_detail' request.id %}" class="btn btn-sm btn-outline-secondary">View Details</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table></div>{% else %}<div class="alert alert-info mb-0">You have not answered any requests yet.</div>{% endif %}
+            </div>
+
+        </div></div>
     </div>
 </div>
 {% endblock %}

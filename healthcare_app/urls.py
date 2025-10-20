@@ -13,7 +13,8 @@ from .views import (
     quick_help_view,
     profile_view,
     profile_edit_view,
-    profile_picture_upload_view
+    profile_picture_upload_view,
+    assign_request_view
 )
 
 urlpatterns = [
@@ -35,4 +36,5 @@ urlpatterns = [
     path('profile/', profile_view, name='profile'),
     path('profile/edit/', profile_edit_view, name='profile_edit'),
     path('profile/upload-picture/', profile_picture_upload_view, name='profile_picture_upload'),
+    path('request/<int:request_id>/assign/', assign_request_view, name='assign_request'),
 ]
