@@ -100,7 +100,7 @@
                 
             {% elif user.role == 'patient' %}
                 <li><a href="{% url 'patient_dashboard' %}" class="{% if request.resolver_match.url_name == 'patient_dashboard' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="{% url 'doctor_list' %}" class="{% if request.resolver_match.url_name == 'doctor_list' %}active{% endif %}"><i class="fas fa-calendar-check"></i> Book an Appointment</a></li>
+                <li><a href="{% url 'appointment_history' %}" class="{% if 'appointment' in request.resolver_match.url_name or 'doctor' in request.resolver_match.url_name %}active{% endif %}"><i class="fas fa-calendar-check"></i> My Appointments</a></li>
                 <li><a href="{% url 'quick_help' %}" class="{% if request.resolver_match.url_name == 'quick_help' %}active{% endif %}"><i class="fas fa-robot"></i> Quick Help</a></li>
                 <li><a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><i class="fas fa-user-circle"></i> My Profile</a></li>
             {% endif %}

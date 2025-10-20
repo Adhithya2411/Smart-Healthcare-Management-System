@@ -18,15 +18,15 @@
         <div class="card-header"><h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Your Upcoming Appointments</h5></div>
         <div class="list-group list-group-flush">
             {% for appointment in upcoming_appointments|slice:":5" %}
-            <div class="list-group-item">
+            <a href="{% url 'appointment_detail' appointment.id %}" class="list-group-item list-group-item-action">
                 <strong>{{ appointment.timeslot.start_time|date:"g:i A" }}</strong> with {{ appointment.patient.user.get_full_name }}
                 <br><small class="text-muted">{{ appointment.timeslot.start_time|date:"l, F d" }}</small>
-            </div>
+            </a>
             {% endfor %}
         </div>
     </div>
     {% endif %}
-    
+
     <div class="card shadow-sm">
         <div class="card-header"><ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab"><i class="fas fa-clipboard-list me-2"></i>Pending Queue</button></li>

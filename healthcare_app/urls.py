@@ -18,7 +18,9 @@ from .views import (
     manage_schedule_view,
     doctor_list_view,
     doctor_schedule_view,
-    book_appointment_view
+    book_appointment_view,
+    appointment_detail_view,
+    appointment_history_view
 )
 
 urlpatterns = [
@@ -46,4 +48,7 @@ urlpatterns = [
     path('doctors/', doctor_list_view, name='doctor_list'),
     path('doctors/<int:doctor_id>/schedule/', doctor_schedule_view, name='doctor_schedule'),
     path('appointment/book/<int:slot_id>/', book_appointment_view, name='book_appointment'),
+    path('appointment/<int:appointment_id>/', appointment_detail_view, name='appointment_detail'),
+    path('appointments/history/', appointment_history_view, name='appointment_history'),
+    
 ]

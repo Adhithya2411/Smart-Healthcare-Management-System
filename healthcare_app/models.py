@@ -111,9 +111,19 @@ class TimeSlot(models.Model):
         return f"Slot for Dr. {self.doctor.user.username} from {self.start_time.strftime('%Y-%m-%d %H:%M')} to {self.end_time.strftime('%H:%M')}"
 
 class Appointment(models.Model):
+
+    STATUS_CHOICES = (
+        ('Booked', 'Booked'),
+        ('Completed', 'Completed'),
+    )
+
     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name='appointments')
     timeslot = models.OneToOneField(TimeSlot, on_delete=models.CASCADE, related_name='appointment')
-    reason = models.TextField(blank=True)
+    reason = models.TextField()
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Booked')
+    diagnosis = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
 
     def __str__(self):
         return f"Appointment for {self.patient.user.username} with Dr. {self.timeslot.doctor.user.username}"

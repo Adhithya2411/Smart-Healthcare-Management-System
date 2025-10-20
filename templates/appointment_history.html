@@ -1,0 +1,49 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}My Appointments{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">My Appointments</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Your Appointment History</h4>
+            <a href="{% url 'doctor_list' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i> Book New Appointment</a>
+        </div>
+        <div class="card-body">
+            {% if appointments %}
+                <div class="accordion" id="appointmentsAccordion">
+                    {% for appt in appointments %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ appt.id }}">
+                                    <span class="badge me-3 {% if appt.status == 'Booked' %}bg-info{% else %}bg-success{% endif %}">{{ appt.status }}</span>
+                                    Appointment with Dr. {{ appt.timeslot.doctor.user.get_full_name }} on {{ appt.timeslot.start_time|date:"F d, Y" }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ appt.id }}" class="accordion-collapse collapse" data-bs-parent="#appointmentsAccordion">
+                                <div class="accordion-body">
+                                    {% if appt.status == 'Completed' %}
+                                        <h5 class="mb-3">Consultation Notes</h5>
+                                        <dl class="row">
+                                            <dt class="col-sm-3">Diagnosis:</dt>
+                                            <dd class="col-sm-9">{{ appt.diagnosis }}</dd>
+                                            <dt class="col-sm-3">Doctor's Notes:</dt>
+                                            <dd class="col-sm-9">{{ appt.notes|linebreaksbr }}</dd>
+                                        </dl>
+                                    {% else %}
+                                        <p>This appointment is booked for <strong>{{ appt.timeslot.start_time|date:"g:i A" }}</strong>. Consultation notes will appear here after the appointment is completed.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">You have no appointments.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

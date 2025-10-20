@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription,TimeSlot
+from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription,TimeSlot,Appointment
 
 class SignUpForm(UserCreationForm):
     ROLE_CHOICES = (
@@ -148,4 +148,30 @@ class TimeSlotForm(forms.ModelForm):
             # Use HTML5 datetime-local input for a nice user experience
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }
+
+class AppointmentNotesForm(forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ['diagnosis', 'notes']
+        widgets = {
+            'diagnosis': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Common Cold'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Advised patient to rest and stay hydrated...'}),
+        }
+
+class ScheduleGenerationForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+    start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
+    end_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
+
+class AppointmentBookingForm(forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Please provide a brief reason for your visit...'
+            })
         }

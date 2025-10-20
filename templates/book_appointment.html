@@ -1,0 +1,36 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Confirm Your Appointment{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0"><i class="fas fa-calendar-check me-2"></i>Confirm Your Appointment</h2>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">You are booking an appointment with:</h5>
+                    <p class="fs-4">Dr. {{ timeslot.doctor.user.get_full_name }}</p>
+
+                    <h5 class="card-title mt-4">On:</h5>
+                    <p class="fs-4">{{ timeslot.start_time|date:"l, F d, Y" }} at {{ timeslot.start_time|date:"g:i A" }}</p>
+
+                    <form method="POST" class="mt-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.reason.id_for_label }}" class="form-label fs-5">Reason for Visit</label>
+                            {{ form.reason }}
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'doctor_schedule' timeslot.doctor.user.id %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-success">Confirm Booking</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
