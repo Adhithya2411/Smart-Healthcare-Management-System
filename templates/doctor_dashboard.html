@@ -14,17 +14,24 @@
     </div>
 
     {% if upcoming_appointments %}
-    <div class="card shadow-sm mb-5">
-        <div class="card-header"><h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Your Upcoming Appointments</h5></div>
-        <div class="list-group list-group-flush">
-            {% for appointment in upcoming_appointments|slice:":5" %}
-            <a href="{% url 'appointment_detail' appointment.id %}" class="list-group-item list-group-item-action">
-                <strong>{{ appointment.timeslot.start_time|date:"g:i A" }}</strong> with {{ appointment.patient.user.get_full_name }}
-                <br><small class="text-muted">{{ appointment.timeslot.start_time|date:"l, F d" }}</small>
-            </a>
-            {% endfor %}
+        <div class="card shadow-sm mb-5">
+            <div class="card-header"><h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Your Upcoming Appointments</h5></div>
+            <div class="list-group list-group-flush">
+                {% for appointment in upcoming_appointments|slice:":5" %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ appointment.timeslot.start_time|date:"g:i A" }}</strong> with {{ appointment.patient.user.get_full_name }}
+                        <br><small class="text-muted">{{ appointment.timeslot.start_time|date:"l, F d" }}</small>
+                    </div>
+                    {% if appointment.timeslot.start_time <= now and now <= appointment.timeslot.end_time %}
+                        <a href="{% url 'consultation_room' appointment.id %}" class="btn btn-sm btn-success">Join Now</a>
+                    {% else %}
+                        <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-sm btn-outline-secondary">View Details</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
     {% endif %}
 
     <div class="card shadow-sm">

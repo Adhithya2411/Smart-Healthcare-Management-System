@@ -20,7 +20,8 @@ from .views import (
     doctor_schedule_view,
     book_appointment_view,
     appointment_detail_view,
-    appointment_history_view
+    appointment_history_view,
+    consultation_room_view
 )
 
 urlpatterns = [
@@ -50,5 +51,7 @@ urlpatterns = [
     path('appointment/book/<int:slot_id>/', book_appointment_view, name='book_appointment'),
     path('appointment/<int:appointment_id>/', appointment_detail_view, name='appointment_detail'),
     path('appointments/history/', appointment_history_view, name='appointment_history'),
+
+    path('consultation/<int:appointment_id>/', consultation_room_view, name='consultation_room'),
     
 ]

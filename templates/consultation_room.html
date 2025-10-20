@@ -1,0 +1,90 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Consultation Room{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-comments me-2"></i>Consultation with Dr. {{ appointment.timeslot.doctor.user.get_full_name }}</h4>
+        </div>
+        <div class="card-body" id="chat-log" style="height: 60vh; overflow-y: scroll;">
+            </div>
+        <div class="card-footer">
+            <div class="input-group">
+                <input id="chat-message-input" type="text" class="form-control" placeholder="Type your message...">
+                <button class="btn btn-primary" id="chat-message-submit">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+   
+    const appointmentId = {{ appointment_id }};
+    const currentUsername = '{{ username }}'; 
+
+    const chatLog = document.querySelector('#chat-log');
+    const chatInput = document.querySelector('#chat-message-input');
+    const chatSubmit = document.querySelector('#chat-message-submit');
+
+    // --- WebSocket Connection ---
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/chat/'
+        + appointmentId
+        + '/'
+    );
+
+    chatSocket.onopen = function(e) {
+        console.log('Chat socket successfully connected.');
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly.');
+        chatLog.innerHTML += '<div class="alert alert-danger mt-3">Connection closed. Please ensure you are accessing this during the scheduled appointment time. <a href="{{ request.META.HTTP_REFERER|escape }}" class="alert-link">Return to dashboard</a>.</div>';
+    };
+
+    // --- Receiving Messages ---
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const messageElement = document.createElement('div');
+        const isMe = data.username === currentUsername;
+        
+        messageElement.className = isMe ? 'd-flex justify-content-end mb-3' : 'd-flex justify-content-start mb-3';
+        
+        const messageBubble = `
+            <div class="card ${isMe ? 'bg-primary text-white' : 'bg-light'}" style="max-width: 75%;">
+                <div class="card-body p-2">
+                    <p class="card-text small mb-0">${data.message}</p>
+                    <small class="d-block text-end mt-1 ${isMe ? 'text-white-50' : 'text-muted'}">${isMe ? 'You' : data.username}</small>
+                </div>
+            </div>
+        `;
+        messageElement.innerHTML = messageBubble;
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight; // Auto-scroll to bottom
+    };
+
+    // --- Sending Messages ---
+    chatInput.focus();
+    chatInput.onkeyup = function(e) {
+        if (e.key === 'Enter') {  // enter, return
+            chatSubmit.click();
+        }
+    };
+
+    chatSubmit.onclick = function(e) {
+        const message = chatInput.value;
+        if (message.trim() !== '') {
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            chatInput.value = '';
+        }
+    };
+</script>
+{% endblock %}

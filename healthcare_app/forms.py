@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
 from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription,TimeSlot,Appointment
+from datetime import datetime
 
 class SignUpForm(UserCreationForm):
     ROLE_CHOICES = (
@@ -163,6 +164,17 @@ class ScheduleGenerationForm(forms.Form):
     date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
     end_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+
+        if start_time and end_time:
+            if end_time <= start_time:
+                # This error will now be displayed to the user
+                raise forms.ValidationError("End time must be after start time.")
+        return cleaned_data
 
 class AppointmentBookingForm(forms.ModelForm):
     class Meta:

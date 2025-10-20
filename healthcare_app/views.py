@@ -1,5 +1,6 @@
 # In healthcare_app/views.py
 
+from django.conf import settings
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from .forms import SignUpForm,PrescriptionForm,ProfilePictureUpdateForm
@@ -17,6 +18,7 @@ from django.db.models.functions import TruncDate
 from datetime import date,timedelta,datetime
 from django.utils import timezone
 import json
+
 
 def signup_view(request):
     if request.method == 'POST':
@@ -109,29 +111,47 @@ def admin_dashboard(request):
 @role_required(allowed_roles=['doctor'])
 def doctor_dashboard(request):
     doctor_profile = request.user.doctorprofile
+    now = timezone.localtime() # Use localtime for consistency
 
-    # Fetch pending requests that match this doctor's specialty
-    pending_requests = HelpRequest.objects.filter(
-        status='Pending',
-        specialty=doctor_profile.specialty
-    ).order_by('requested_at')
+    # Fetch upcoming appointments
+    upcoming_appointments = Appointment.objects.filter(
+        timeslot__doctor=doctor_profile, 
+        timeslot__start_time__gte=now.replace(hour=0, minute=0, second=0), # Get all from today
+        status='Booked'
+    ).order_by('timeslot__start_time')
 
-    # --- NEW: Fetch requests this doctor has claimed ---
-    active_requests = HelpRequest.objects.filter(
-        doctor=doctor_profile,
-        status='In Progress'
-    ).order_by('requested_at')
+    # --- THE ULTIMATE DEBUG BLOCK ---
+    print("\n" + "="*50)
+    print("          DOCTOR DASHBOARD DEBUG          ")
+    print("="*50)
+    print(f"Current Local Time ('now'): {now}")
+    print(f"Found {upcoming_appointments.count()} upcoming appointment(s) for today.")
+    print("-"*50)
 
-    # Fetch requests this doctor has already answered
-    answered_requests = HelpRequest.objects.filter(
-        doctor=doctor_profile, 
-        status='Answered'
-    ).order_by('-prescription__prescribed_at')
+    for appt in upcoming_appointments:
+        start_time = appt.timeslot.start_time
+        end_time = appt.timeslot.end_time
 
-    upcoming_appointments = Appointment.objects.filter(timeslot__doctor=doctor_profile, 
-                                                   timeslot__start_time__gte=timezone.now(), 
-                                                   status='Booked').order_by('timeslot__start_time')
-    # --- Update the context ---
+        # Perform the exact same comparisons as the template
+        is_after_start = start_time <= now
+        is_before_end = now <= end_time
+
+        print(f"Appointment ID: {appt.id}")
+        print(f"  - Start Time: {start_time}")
+        print(f"  - End Time:   {end_time}")
+        print(f"  - Check 1 (start_time <= now): {is_after_start}")
+        print(f"  - Check 2 (now <= end_time):   {is_before_end}")
+        print(f"  - FINAL RESULT (Both must be True): {is_after_start and is_before_end}")
+        print("-"*50)
+
+    print("="*50 + "\n")
+    # --- END DEBUG BLOCK ---
+
+    # The rest of your view is the same
+    pending_requests = HelpRequest.objects.filter(status='Pending', specialty=doctor_profile.specialty).order_by('requested_at')
+    active_requests = HelpRequest.objects.filter(doctor=doctor_profile, status='In Progress').order_by('requested_at')
+    answered_requests = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').order_by('-prescription__prescribed_at')
+
     context = {
         'pending_requests': pending_requests,
         'active_requests': active_requests,
@@ -140,6 +160,7 @@ def doctor_dashboard(request):
         'active_count': active_requests.count(),
         'answered_by_me_count': answered_requests.count(),
         'upcoming_appointments': upcoming_appointments,
+        'now': now
     }
     return render(request, 'doctor_dashboard.html', context)
 
@@ -147,43 +168,52 @@ def doctor_dashboard(request):
 @role_required(allowed_roles=['patient'])
 def patient_dashboard(request):
     patient_profile = request.user.patientprofile
+    now = timezone.localtime() # Use localtime for consistency
 
-    # Handle the form submission (This part is the same)
+    # Fetch upcoming appointments
+    upcoming_appointments = Appointment.objects.filter(
+        patient=patient_profile,
+        timeslot__start_time__gte=now.replace(hour=0, minute=0, second=0),
+        status='Booked'
+    ).order_by('timeslot__start_time')
+
+    # --- DEBUG BLOCK FOR PATIENT (You can remove this later) ---
+    print("\n" + "="*50)
+    print("         PATIENT DASHBOARD DEBUG         ")
+    print("="*50)
+    print(f"Current Local Time ('now'): {now}")
+    print(f"Found {upcoming_appointments.count()} upcoming appointment(s) for this patient.")
+    print("-"*50)
+    for appt in upcoming_appointments:
+        start_time = appt.timeslot.start_time
+        end_time = appt.timeslot.end_time
+        is_after_start = start_time <= now
+        is_before_end = now <= end_time
+        print(f"Appointment ID: {appt.id}, Start: {start_time}, End: {end_time}, Result: {is_after_start and is_before_end}")
+    print("="*50 + "\n")
+    # --- END DEBUG BLOCK ---
+
+    # The rest of your view is the same
     if request.method == 'POST':
         form = HelpRequestForm(request.POST, request.FILES)
         if form.is_valid():
-            new_request = form.save(commit=False)
-            new_request.patient = patient_profile
-            new_request.save()
+            new_request = form.save(commit=False); new_request.patient = patient_profile; new_request.save()
             messages.success(request, 'Your help request has been submitted successfully!')
             return redirect('patient_dashboard')
     else:
         form = HelpRequestForm()
 
-    # --- 1. Data for Stat Cards ---
     pending_count = HelpRequest.objects.filter(patient=patient_profile, status='Pending').count()
     answered_count = HelpRequest.objects.filter(patient=patient_profile, status='Answered').count()
-
-    # --- 2. Data for "Request History" ---
     past_requests = HelpRequest.objects.filter(patient=patient_profile).order_by('-requested_at')
-
-    # --- 3. Data for "Medical History" ---
     medical_history = PatientMedicalHistory.objects.filter(patient=patient_profile).order_by('-recorded_at')
 
-    upcoming_appointments = Appointment.objects.filter(patient=patient_profile, 
-                                                   timeslot__start_time__gte=timezone.now(), 
-                                                   status='Booked').order_by('timeslot__start_time')
-
     context = {
-        'form': form,
-        'past_requests': past_requests,
-        'medical_history': medical_history,
-        'pending_count': pending_count,
-        'answered_count': answered_count,
-        'upcoming_appointments': upcoming_appointments,
+        'form': form, 'past_requests': past_requests, 'medical_history': medical_history,
+        'pending_count': pending_count, 'answered_count': answered_count,
+        'upcoming_appointments': upcoming_appointments, 'now': now
     }
     return render(request, 'patient_dashboard.html', context)
-
 
 @login_required
 @role_required(allowed_roles=['doctor'])
@@ -343,46 +373,43 @@ def assign_request_view(request, request_id):
 
     # If it's a GET request, just redirect away
     return redirect('doctor_dashboard')
-
 @login_required
 @role_required(allowed_roles=['doctor'])
 def manage_schedule_view(request):
     doctor_profile = request.user.doctorprofile
-    
+
     if request.method == 'POST':
         form = ScheduleGenerationForm(request.POST)
         if form.is_valid():
             date = form.cleaned_data['date']
             start_time = form.cleaned_data['start_time']
             end_time = form.cleaned_data['end_time']
-            
-            # Combine date and time objects to create datetime objects
-            current_slot_start = datetime.combine(date, start_time)
-            final_slot_end = datetime.combine(date, end_time)
 
-            # Loop and create 30-minute slots
+            current_slot_start_naive = datetime.combine(date, start_time)
+            final_slot_end_naive = datetime.combine(date, end_time)
+
+            current_slot_start = timezone.make_aware(current_slot_start_naive)
+            final_slot_end = timezone.make_aware(final_slot_end_naive)
+
             while current_slot_start < final_slot_end:
                 current_slot_end = current_slot_start + timedelta(minutes=30)
-                # Ensure we don't create a slot that goes past the doctor's end time
                 if current_slot_end > final_slot_end:
                     break
-                
-                # Create the TimeSlot object
                 TimeSlot.objects.create(
                     doctor=doctor_profile,
                     start_time=current_slot_start,
                     end_time=current_slot_end
                 )
-                # Move to the next slot
                 current_slot_start = current_slot_end
 
             messages.success(request, 'Your schedule has been updated with the new time slots!')
             return redirect('manage_schedule')
+        else:
+            messages.error(request, 'There was an error in your form submission. Please check the details.')
     else:
         form = ScheduleGenerationForm()
 
-    # The rest of the view remains the same (fetching existing timeslots)
-    today = timezone.now().date()
+    today = timezone.localdate() # This gets the correct date for your timezone
     start_of_week = today - timedelta(days=today.weekday())
     end_of_week = start_of_week + timedelta(days=6)
 
@@ -407,18 +434,36 @@ def doctor_list_view(request):
     }
     return render(request, 'doctor_list.html', context)
 
+# In healthcare_app/views.py
+
 @login_required
 @role_required(allowed_roles=['patient'])
 def doctor_schedule_view(request, doctor_id):
     doctor = get_object_or_404(DoctorProfile, user_id=doctor_id)
+    today = timezone.localtime()
 
-    # Fetch all available (not booked) timeslots for this doctor from today onwards
-    today = timezone.now()
+    # --- TEMPORARY DEBUGGING ---
+    print("=============================================")
+    print(f"DEBUGGING SCHEDULE for Dr. {doctor.user.username}")
+    print(f"Current Time Used for Filtering: {today}")
+
+    # Step 1: Get ALL slots for this doctor, even past or booked ones
+    all_slots_for_doctor = TimeSlot.objects.filter(doctor=doctor)
+    print(f"Total slots found for this doctor (any status): {all_slots_for_doctor.count()}")
+
+    # Step 2: Print details of a few slots to check their data
+    for slot in all_slots_for_doctor.order_by('start_time')[:3]: # Check the first 3
+        print(f"  - Slot ID {slot.id}: Starts at {slot.start_time}, Is Booked? {slot.is_booked}")
+
+    # Step 3: Run the actual query the page uses
     available_slots = TimeSlot.objects.filter(
         doctor=doctor,
         start_time__gte=today,
         is_booked=False
     ).order_by('start_time')
+    print(f"Slots visible to patient after filtering: {available_slots.count()}")
+    print("=============================================")
+    # --- END DEBUGGING ---
 
     context = {
         'doctor': doctor,
@@ -499,3 +544,27 @@ def appointment_history_view(request):
         'appointments': appointments,
     }
     return render(request, 'appointment_history.html', context)
+
+@login_required
+def consultation_room_view(request, appointment_id):
+    # Ensure the user is authorized to be in this room
+    try:
+        appointment = Appointment.objects.get(id=appointment_id)
+        user = request.user
+        is_patient = (user.role == 'patient' and appointment.patient.user == user)
+        is_doctor = (user.role == 'doctor' and appointment.timeslot.doctor.user == user)
+        
+        if not (is_patient or is_doctor):
+            messages.error(request, "You are not authorized to view this consultation.")
+            return redirect('patient_dashboard' if user.role == 'patient' else 'doctor_dashboard')
+
+    except Appointment.DoesNotExist:
+        messages.error(request, "This appointment does not exist.")
+        return redirect('patient_dashboard' if user.role == 'patient' else 'doctor_dashboard')
+
+    context = {
+        'appointment_id': appointment_id,
+        'username': request.user.username,
+        'appointment': appointment,
+    }
+    return render(request, 'consultation_room.html', context)

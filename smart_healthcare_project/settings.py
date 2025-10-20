@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -113,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -135,3 +136,16 @@ MEDIA_URL = '/media/'
 
 # Absolute path to the folder where user-uploaded files will be stored
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Tell Django to use the Channels ASGI application
+ASGI_APPLICATION = 'smart_healthcare_project.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)], # Connects to your running Memurai/Redis
+        },
+    },
+}
+
