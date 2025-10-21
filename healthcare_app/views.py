@@ -12,7 +12,8 @@ from .forms import (SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateFo
                      DoctorProfileUpdateForm,TimeSlotForm,AppointmentNotesForm, MedicalHistoryForm,
                      ScheduleGenerationForm,AppointmentBookingForm)
 from .models import (User,HelpRequest,Prescription,Symptom, SymptomOption, 
-                     Suggestion,PatientMedicalHistory,TimeSlot,DoctorProfile,Appointment,Notification)
+                     Suggestion,PatientMedicalHistory,TimeSlot,DoctorProfile,Appointment,Notification,
+                     PatientProfile)
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from datetime import date,timedelta,datetime
@@ -139,6 +140,15 @@ def doctor_dashboard(request):
 @login_required
 @role_required(allowed_roles=['patient'])
 def patient_dashboard(request):
+   
+    if not hasattr(request.user, 'patientprofile'):
+        # If the user is an admin/staff, send them to the correct dashboard.
+        if request.user.is_staff:
+            return redirect('admin_dashboard')
+        # For any other case, redirect to login to be safe.
+        else:
+            return redirect('login')
+    
     patient_profile = request.user.patientprofile
     now = timezone.localtime() # Use localtime for consistency
 
