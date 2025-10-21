@@ -12,7 +12,7 @@ from .forms import (SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateFo
                      DoctorProfileUpdateForm,TimeSlotForm,AppointmentNotesForm, MedicalHistoryForm,
                      ScheduleGenerationForm,AppointmentBookingForm)
 from .models import (User,HelpRequest,Prescription,Symptom, SymptomOption, 
-                     Suggestion,PatientMedicalHistory,TimeSlot,DoctorProfile,Appointment)
+                     Suggestion,PatientMedicalHistory,TimeSlot,DoctorProfile,Appointment,Notification)
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from datetime import date,timedelta,datetime
@@ -604,3 +604,12 @@ def consultation_room_view(request, appointment_id):
         'appointment': appointment,
     }
     return render(request, 'consultation_room.html', context)
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    
+    # Redirect to the original link stored in the notification
+    return redirect(notification.link)

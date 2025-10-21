@@ -141,3 +141,16 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"Message by {self.user.username} in Appointment {self.appointment.id}"
+    
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=255)
+    link = models.URLField(blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at'] # Show newest notifications first
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message}"
