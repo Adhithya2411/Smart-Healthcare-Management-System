@@ -4,12 +4,7 @@
 
 {% block content %}
 <div class="container-fluid">
-    
-    {% if messages %}
-    {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
+    {% if messages %}{% for message in messages %}<div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">{{ message }}</div>{% endfor %}{% endif %}
 
     <h1 class="mb-4">Manage My Schedule</h1>
 
@@ -36,9 +31,11 @@
                     <span class="badge bg-secondary">{{ current_week }}</span>
                 </div>
                 <div class="card-body">
-                    {% if timeslots %}
-                        <ul class="list-group">
-                            {% for slot in timeslots %}
+                    
+                    <h5><i class="fas fa-hourglass-start text-primary me-2"></i>Upcoming Slots</h5>
+                    {% if upcoming_slots %}
+                        <ul class="list-group mb-4">
+                            {% for slot in upcoming_slots %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong>{{ slot.start_time|date:"l, M d" }}</strong><br>
@@ -53,7 +50,28 @@
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <div class="alert alert-info mb-0">You have no time slots scheduled for this week.</div>
+                        <div class="alert alert-info mb-4">You have no upcoming time slots scheduled for this week.</div>
+                    {% endif %}
+
+                    <h5><i class="fas fa-history text-muted me-2"></i>Past Slots This Week</h5>
+                    {% if past_slots %}
+                         <ul class="list-group">
+                            {% for slot in past_slots %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                    <div>
+                                        <strong>{{ slot.start_time|date:"l, M d" }}</strong><br>
+                                        <span class="text-muted">{{ slot.start_time|date:"g:i A" }} - {{ slot.end_time|date:"g:i A" }}</span>
+                                    </div>
+                                    {% if slot.is_booked %}
+                                        <span class="badge bg-secondary">Booked</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark border">Expired</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                         <p class="text-muted">No past slots from this week.</p>
                     {% endif %}
                 </div>
             </div>

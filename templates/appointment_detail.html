@@ -28,20 +28,47 @@
         </div>
 
         <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white"><h4 class="mb-0"><i class="fas fa-notes-medical me-2"></i>Consultation Notes</h4></div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="mb-3">{{ form.diagnosis.label_tag }}{{ form.diagnosis }}</div>
-                        <div class="mb-3">{{ form.notes.label_tag }}{{ form.notes }}</div>
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">Save & Mark as Completed</button>
-                            <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
-                        </div>
-                    </form>
+    
+            {% if appointment.status == 'Booked' and now < appointment.timeslot.start_time %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white"><h4 class="mb-0"><i class="fas fa-clock me-2"></i>Appointment Pending</h4></div>
+                    <div class="card-body text-center">
+                        <p class="lead">This appointment is scheduled for the future.</p>
+                        <p>The consultation room will be available at the scheduled time.</p>
+                        <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+                    </div>
                 </div>
-            </div>
+
+            {% elif appointment.status == 'Completed' %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white"><h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>Consultation Completed</h4></div>
+                    <div class="card-body">
+                        <form>
+                            <fieldset disabled>
+                                <div class="mb-3">{{ form.diagnosis.label_tag }}{{ form.diagnosis }}</div>
+                                <div class="mb-3">{{ form.notes.label_tag }}{{ form.notes }}</div>
+                            </fieldset>
+                            <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+                        </form>
+                    </div>
+                </div>
+                
+            {% else %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white"><h4 class="mb-0"><i class="fas fa-notes-medical me-2"></i>Consultation Notes</h4></div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">{{ form.diagnosis.label_tag }}{{ form.diagnosis }}</div>
+                            <div class="mb-3">{{ form.notes.label_tag }}{{ form.notes }}</div>
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">Save & Mark as Completed</button>
+                                <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

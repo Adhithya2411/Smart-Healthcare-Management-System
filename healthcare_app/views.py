@@ -373,6 +373,7 @@ def assign_request_view(request, request_id):
 
     # If it's a GET request, just redirect away
     return redirect('doctor_dashboard')
+
 @login_required
 @role_required(allowed_roles=['doctor'])
 def manage_schedule_view(request):
@@ -409,18 +410,31 @@ def manage_schedule_view(request):
     else:
         form = ScheduleGenerationForm()
 
-    today = timezone.localdate() # This gets the correct date for your timezone
+    
+    now = timezone.localtime()
+    today = now.date()
     start_of_week = today - timedelta(days=today.weekday())
     end_of_week = start_of_week + timedelta(days=6)
 
-    timeslots = TimeSlot.objects.filter(
+    # Query 1: Get all upcoming slots for the week
+    upcoming_slots = TimeSlot.objects.filter(
         doctor=doctor_profile,
-        start_time__date__range=[start_of_week, end_of_week]
+        start_time__date__range=[start_of_week, end_of_week],
+        start_time__gte=now  # The slot must be in the future
     ).order_by('start_time')
 
+    # Query 2: Get all past slots for the week
+    past_slots = TimeSlot.objects.filter(
+        doctor=doctor_profile,
+        start_time__date__range=[start_of_week, end_of_week],
+        start_time__lt=now  # The slot must be in the past
+    ).order_by('-start_time')
+
+    # Update the context to send the new variables to the template
     context = {
         'form': form,
-        'timeslots': timeslots,
+        'upcoming_slots': upcoming_slots,
+        'past_slots': past_slots,
         'current_week': f"{start_of_week.strftime('%b %d')} - {end_of_week.strftime('%b %d, %Y')}"
     }
     return render(request, 'manage_schedule.html', context)
@@ -506,27 +520,36 @@ def book_appointment_view(request, slot_id):
 def appointment_detail_view(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id, timeslot__doctor=request.user.doctorprofile)
     patient_profile = appointment.patient
+    now = timezone.localtime()
 
     # Fetch patient's history for context
     medical_history = PatientMedicalHistory.objects.filter(patient=patient_profile).order_by('-recorded_at')
     past_answered_requests = HelpRequest.objects.filter(patient=patient_profile, status='Answered').order_by('-prescription__prescribed_at')[:5]
 
     if request.method == 'POST':
+        # This logic only runs when a form is submitted
         form = AppointmentNotesForm(request.POST, instance=appointment)
         if form.is_valid():
             consultation = form.save(commit=False)
-            consultation.status = 'Completed' # Mark the appointment as completed
+            consultation.status = 'Completed'
             consultation.save()
             messages.success(request, "Consultation notes have been saved.")
             return redirect('doctor_dashboard')
     else:
-        form = AppointmentNotesForm(instance=appointment)
+        # For a GET request, decide what to show based on status
+        if appointment.status == 'Completed':
+            # If already completed, show a filled-out, disabled form
+            form = AppointmentNotesForm(instance=appointment)
+        else:
+            # If booked but not completed, show a blank form
+            form = AppointmentNotesForm()
 
     context = {
         'appointment': appointment,
         'form': form,
         'medical_history': medical_history,
         'past_answered_requests': past_answered_requests,
+        'now': now, # Pass current time to template
     }
     return render(request, 'appointment_detail.html', context)
 
