@@ -14,6 +14,12 @@
             <div class="input-group">
                 <input id="chat-message-input" type="text" class="form-control" placeholder="Type your message...">
                 <button class="btn btn-primary" id="chat-message-submit">Send</button>
+                
+                {% if user.role == 'doctor' %}
+                    <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-success">
+                        <i class="fas fa-check-circle me-1"></i> Finalize
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>

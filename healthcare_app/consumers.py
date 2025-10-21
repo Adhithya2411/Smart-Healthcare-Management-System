@@ -72,8 +72,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({'message': message,'username': username}))
     @database_sync_to_async
     def check_authorization(self, user, appointment_id):
+ 
         try:
-            appointment = Appointment.objects.get(id=appointment_id)
+            appointment = Appointment.objects.select_related('timeslot', 'patient__user', 'timeslot__doctor__user').get(id=appointment_id)
+            
+            # The rest of the logic is the same, but now it's safer
             if user.role == 'patient' and appointment.patient.user == user:
                 return True, appointment
             if user.role == 'doctor' and appointment.timeslot.doctor.user == user:
