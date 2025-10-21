@@ -14,7 +14,6 @@ class SignUpForm(UserCreationForm):
     role = forms.ChoiceField(
         choices=ROLE_CHOICES,
         required=True,
-        # The widget is important for styling in the template
         widget=forms.RadioSelect(attrs={'class': 'form-check-input'}) 
     )
     
@@ -22,7 +21,6 @@ class SignUpForm(UserCreationForm):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name')
 
-    # This __init__ method is new. It's used to add CSS classes to the fields.
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -31,35 +29,30 @@ class SignUpForm(UserCreationForm):
             'email': 'Email Address',
             'first_name': 'First Name',
             'last_name': 'Last Name',
-            'password': 'Password',
-            'password2': 'Confirm Password'
         }
 
-        for field_name, placeholder_text in placeholders.items():
-            if field_name in self.fields:
-                field = self.fields[field_name]
-                field.widget.attrs.update({
-                    'class': 'form-control',
-                    'placeholder': placeholder_text
-                })
-                # We can also remove the default labels now
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.RadioSelect):
+                field.widget.attrs.update({'class': 'form-control'})
+            
+            if field_name in placeholders:
+                field.widget.attrs.update({'placeholder': placeholders[field_name]})
                 field.label = ''
+            
+            # Add placeholders for the password fields
+            if field_name == 'password1':
+                field.widget.attrs.update({'placeholder': 'Password'})
+            if field_name == 'password2':
+                field.widget.attrs.update({'placeholder': 'Confirm Password'})
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = self.cleaned_data['role']
-        
         if commit:
             user.save()
-            if user.role == 'patient':
-                PatientProfile.objects.create(user=user)
-            elif user.role == 'doctor':
-                DoctorProfile.objects.create(user=user)
-                
+            if user.role == 'patient': PatientProfile.objects.create(user=user)
+            elif user.role == 'doctor': DoctorProfile.objects.create(user=user)
         return user
-    
-# In healthcare_app/forms.py
-# Add this code below the SignUpForm class
 
 
 

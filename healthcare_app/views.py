@@ -119,35 +119,7 @@ def doctor_dashboard(request):
         timeslot__start_time__gte=now.replace(hour=0, minute=0, second=0), # Get all from today
         status='Booked'
     ).order_by('timeslot__start_time')
-
-    # --- THE ULTIMATE DEBUG BLOCK ---
-    print("\n" + "="*50)
-    print("          DOCTOR DASHBOARD DEBUG          ")
-    print("="*50)
-    print(f"Current Local Time ('now'): {now}")
-    print(f"Found {upcoming_appointments.count()} upcoming appointment(s) for today.")
-    print("-"*50)
-
-    for appt in upcoming_appointments:
-        start_time = appt.timeslot.start_time
-        end_time = appt.timeslot.end_time
-
-        # Perform the exact same comparisons as the template
-        is_after_start = start_time <= now
-        is_before_end = now <= end_time
-
-        print(f"Appointment ID: {appt.id}")
-        print(f"  - Start Time: {start_time}")
-        print(f"  - End Time:   {end_time}")
-        print(f"  - Check 1 (start_time <= now): {is_after_start}")
-        print(f"  - Check 2 (now <= end_time):   {is_before_end}")
-        print(f"  - FINAL RESULT (Both must be True): {is_after_start and is_before_end}")
-        print("-"*50)
-
-    print("="*50 + "\n")
-    # --- END DEBUG BLOCK ---
-
-    # The rest of your view is the same
+        
     pending_requests = HelpRequest.objects.filter(status='Pending', specialty=doctor_profile.specialty).order_by('requested_at')
     active_requests = HelpRequest.objects.filter(doctor=doctor_profile, status='In Progress').order_by('requested_at')
     answered_requests = HelpRequest.objects.filter(doctor=doctor_profile, status='Answered').order_by('-prescription__prescribed_at')
@@ -177,23 +149,6 @@ def patient_dashboard(request):
         status='Booked'
     ).order_by('timeslot__start_time')
 
-    # --- DEBUG BLOCK FOR PATIENT (You can remove this later) ---
-    print("\n" + "="*50)
-    print("         PATIENT DASHBOARD DEBUG         ")
-    print("="*50)
-    print(f"Current Local Time ('now'): {now}")
-    print(f"Found {upcoming_appointments.count()} upcoming appointment(s) for this patient.")
-    print("-"*50)
-    for appt in upcoming_appointments:
-        start_time = appt.timeslot.start_time
-        end_time = appt.timeslot.end_time
-        is_after_start = start_time <= now
-        is_before_end = now <= end_time
-        print(f"Appointment ID: {appt.id}, Start: {start_time}, End: {end_time}, Result: {is_after_start and is_before_end}")
-    print("="*50 + "\n")
-    # --- END DEBUG BLOCK ---
-
-    # The rest of your view is the same
     if request.method == 'POST':
         form = HelpRequestForm(request.POST, request.FILES)
         if form.is_valid():
