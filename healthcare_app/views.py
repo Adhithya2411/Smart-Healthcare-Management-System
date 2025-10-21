@@ -9,7 +9,7 @@ from .decorators import role_required # Our custom role checker
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import (SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateForm,
-                     DoctorProfileUpdateForm,TimeSlotForm,AppointmentNotesForm,
+                     DoctorProfileUpdateForm,TimeSlotForm,AppointmentNotesForm, MedicalHistoryForm,
                      ScheduleGenerationForm,AppointmentBookingForm)
 from .models import (User,HelpRequest,Prescription,Symptom, SymptomOption, 
                      Suggestion,PatientMedicalHistory,TimeSlot,DoctorProfile,Appointment)
@@ -526,30 +526,41 @@ def appointment_detail_view(request, appointment_id):
     medical_history = PatientMedicalHistory.objects.filter(patient=patient_profile).order_by('-recorded_at')
     past_answered_requests = HelpRequest.objects.filter(patient=patient_profile, status='Answered').order_by('-prescription__prescribed_at')[:5]
 
+    # Initialize both forms
+    notes_form = AppointmentNotesForm(instance=appointment)
+    history_form = MedicalHistoryForm()
+
     if request.method == 'POST':
-        # This logic only runs when a form is submitted
-        form = AppointmentNotesForm(request.POST, instance=appointment)
-        if form.is_valid():
-            consultation = form.save(commit=False)
-            consultation.status = 'Completed'
-            consultation.save()
-            messages.success(request, "Consultation notes have been saved.")
-            return redirect('doctor_dashboard')
-    else:
-        # For a GET request, decide what to show based on status
-        if appointment.status == 'Completed':
-            # If already completed, show a filled-out, disabled form
-            form = AppointmentNotesForm(instance=appointment)
-        else:
-            # If booked but not completed, show a blank form
-            form = AppointmentNotesForm()
+        # Check which form was submitted using the button's 'name' attribute
+        if 'notes_form' in request.POST:
+            notes_form = AppointmentNotesForm(request.POST, instance=appointment)
+            if notes_form.is_valid():
+                consultation = notes_form.save(commit=False)
+                consultation.status = 'Completed'
+                consultation.save()
+                messages.success(request, "Consultation notes have been saved.")
+                return redirect('doctor_dashboard')
+        
+        elif 'history_form' in request.POST:
+            history_form = MedicalHistoryForm(request.POST)
+            if history_form.is_valid():
+                new_history_item = history_form.save(commit=False)
+                new_history_item.patient = patient_profile
+                new_history_item.save()
+                messages.success(request, f"'{new_history_item.condition_name}' added to patient's medical history.")
+                return redirect('appointment_detail', appointment_id=appointment.id) # Redirect back to the same page
+
+    # For a GET request, decide what to show for the notes form
+    if appointment.status == 'Completed':
+        notes_form = AppointmentNotesForm(instance=appointment)
 
     context = {
         'appointment': appointment,
-        'form': form,
+        'notes_form': notes_form,
+        'history_form': history_form, 
         'medical_history': medical_history,
         'past_answered_requests': past_answered_requests,
-        'now': now, # Pass current time to template
+        'now': now,
     }
     return render(request, 'appointment_detail.html', context)
 

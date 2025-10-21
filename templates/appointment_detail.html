@@ -25,6 +25,22 @@
                     {% if past_answered_requests %}<div class="list-group list-group-flush">{% for past_request in past_answered_requests %}<a href="{% url 'request_detail' past_request.id %}" class="list-group-item list-group-item-action small"><strong>{{ past_request.prescription.diagnosis }}</strong><br><small class="text-muted">{{ past_request.prescription.prescribed_at|date:"F d, Y" }}</small></a>{% endfor %}</div>{% else %}<p class="text-muted small">No past requests found.</p>{% endif %}
                 </div>
             </div>
+
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0"><i class="fas fa-book-medical me-2"></i>Add to Medical History</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">{{ history_form.condition_name.label_tag }}{{ history_form.condition_name }}</div>
+                        <div class="mb-3">{{ history_form.status.label_tag }}{{ history_form.status }}</div>
+                        <div class="d-grid">
+                            <button type="submit" name="history_form" class="btn btn-outline-primary">Add Condition</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-8">
@@ -59,10 +75,10 @@
                     <div class="card-body">
                         <form method="POST">
                             {% csrf_token %}
-                            <div class="mb-3">{{ form.diagnosis.label_tag }}{{ form.diagnosis }}</div>
-                            <div class="mb-3">{{ form.notes.label_tag }}{{ form.notes }}</div>
+                            <div class="mb-3">{{ notes_form.diagnosis.label_tag }}{{ notes_form.diagnosis }}</div>
+                            <div class="mb-3">{{ notes_form.notes.label_tag }}{{ notes_form.notes }}</div>
                             <div class="mt-4">
-                                <button type="submit" class="btn btn-primary">Save & Mark as Completed</button>
+                                <button type="submit" name="notes_form" class="btn btn-primary">Save & Mark as Completed</button>
                                 <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
                             </div>
                         </form>

@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription,TimeSlot,Appointment
+from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription,TimeSlot,Appointment,PatientMedicalHistory
 from datetime import datetime
 
 class SignUpForm(UserCreationForm):
@@ -186,4 +186,17 @@ class AppointmentBookingForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Please provide a brief reason for your visit...'
             })
+        }
+
+class MedicalHistoryForm(forms.ModelForm):
+    class Meta:
+        model = PatientMedicalHistory
+        fields = ['condition_name', 'status']
+        widgets = {
+            'condition_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Hypertension, Asthma'}),
+            'status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Chronic, Recovered'}),
+        }
+        labels = {
+            'condition_name': 'Condition',
+            'status': 'Current Status',
         }
