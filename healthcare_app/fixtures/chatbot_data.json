@@ -1,0 +1,106 @@
+[
+  {
+    "model": "healthcare_app.symptom", "pk": 1,
+    "fields": { "name": "main_symptom", "question_text": "What is your primary symptom?" }
+  },
+  {
+    "model": "healthcare_app.symptom", "pk": 2,
+    "fields": { "name": "headache_type", "question_text": "What type of headache is it?" }
+  },
+  {
+    "model": "healthcare_app.symptom", "pk": 3,
+    "fields": { "name": "cough_type", "question_text": "Is it a dry cough, or a wet cough (producing mucus)?" }
+  },
+  {
+    "model": "healthcare_app.symptom", "pk": 4,
+    "fields": { "name": "fever_level", "question_text": "How high is your fever?" }
+  },
+  {
+    "model": "healthcare_app.symptom", "pk": 5,
+    "fields": { "name": "stomach_pain_type", "question_text": "Is the pain generalized or localized to a specific spot?" }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 1, "fields": { "symptom": 1, "option_text": "Headache", "next_symptom": 2 }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 2, "fields": { "symptom": 1, "option_text": "Cough", "next_symptom": 3 }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 3, "fields": { "symptom": 1, "option_text": "Fever", "next_symptom": 4 }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 4, "fields": { "symptom": 1, "option_text": "Skin Rash", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 5, "fields": { "symptom": 1, "option_text": "Sore Throat", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 6, "fields": { "symptom": 1, "option_text": "Stomach Pain", "next_symptom": 5 }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 7, "fields": { "symptom": 1, "option_text": "Joint Pain", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 8, "fields": { "symptom": 2, "option_text": "Dull, persistent pain", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 9, "fields": { "symptom": 2, "option_text": "Throbbing, one-sided pain", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 10, "fields": { "symptom": 2, "option_text": "Sharp, sudden pain", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 11, "fields": { "symptom": 3, "option_text": "Dry Cough", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 12, "fields": { "symptom": 3, "option_text": "Wet Cough", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 13, "fields": { "symptom": 4, "option_text": "Low-grade (below 100.4°F / 38°C)", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 14, "fields": { "symptom": 4, "option_text": "High-grade (above 100.4°F / 38°C)", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 15, "fields": { "symptom": 5, "option_text": "Generalized ache", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.symptomoption", "pk": 16, "fields": { "symptom": 5, "option_text": "Sharp pain in a specific spot", "next_symptom": null }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 1, "fields": { "option": 4, "suggestion_text": "For a common skin rash, try applying a cold compress and using over-the-counter hydrocortisone cream. Avoid scratching. If the rash spreads or is accompanied by a fever, submit a full help request.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 2, "fields": { "option": 5, "suggestion_text": "For a sore throat, gargle with warm salt water and drink plenty of fluids. Lozenges can provide temporary relief. If you have difficulty swallowing or a high fever, submit a full help request.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 3, "fields": { "option": 7, "suggestion_text": "For minor joint pain, rest the affected area and apply ice. Over-the-counter anti-inflammatory medication like Ibuprofen may help. If the pain is severe or follows an injury, please submit a full help request.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 4, "fields": { "option": 8, "suggestion_text": "This sounds like a tension headache. Rest in a quiet, dark room and drink plenty of water. Over-the-counter pain relievers like Paracetamol or Ibuprofen can be taken if necessary.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 5, "fields": { "option": 9, "suggestion_text": "This may be a migraine. Rest in a dark, quiet room. A cold pack on your forehead may help. If you experience these frequently, please submit a full help request to discuss treatment options.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 6, "fields": { "option": 10, "suggestion_text": "A sharp, sudden, and severe headache can be a sign of a more serious condition. Please submit a full help request or seek immediate medical attention.", "is_prescription_needed": true }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 7, "fields": { "option": 11, "suggestion_text": "For a dry cough, drink warm fluids like tea with honey. Sucking on lozenges can also soothe your throat. Consider using an over-the-counter cough suppressant.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 8, "fields": { "option": 12, "suggestion_text": "For a wet cough, use a humidifier or take a steamy shower to help loosen mucus. An over-the-counter expectorant can help clear the congestion. Drink plenty of fluids.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 9, "fields": { "option": 13, "suggestion_text": "For a low-grade fever, rest and drink plenty of fluids to stay hydrated. You can take Paracetamol or Ibuprofen to reduce discomfort. Monitor your temperature.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 10, "fields": { "option": 14, "suggestion_text": "A high-grade fever should be taken seriously. While you can take fever-reducing medication, it's important to identify the cause. Please submit a full help request to consult with a doctor.", "is_prescription_needed": true }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 11, "fields": { "option": 15, "suggestion_text": "A generalized ache could be due to indigestion. Try to rest and drink clear fluids. A bland diet (like rice or toast) can help. If the pain persists, submit a help request.", "is_prescription_needed": false }
+  },
+  {
+    "model": "healthcare_app.suggestion", "pk": 12, "fields": { "option": 16, "suggestion_text": "Sharp, localized pain can be a sign of a more serious issue like appendicitis. It is strongly recommended that you seek immediate medical attention or submit an urgent help request.", "is_prescription_needed": true }
+  }
+]

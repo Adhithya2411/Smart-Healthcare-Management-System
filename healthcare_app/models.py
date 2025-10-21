@@ -88,17 +88,22 @@ class Symptom(models.Model):
 class SymptomOption(models.Model):
     symptom = models.ForeignKey(Symptom, on_delete=models.CASCADE, related_name='options')
     option_text = models.CharField(max_length=100)
+    
+    next_symptom = models.ForeignKey(Symptom, on_delete=models.SET_NULL, null=True, blank=True, related_name='parent_options')
 
     def __str__(self):
         return f"{self.symptom.name} - {self.option_text}"
 
 class Suggestion(models.Model):
-    option = models.OneToOneField(SymptomOption, on_delete=models.CASCADE, related_name='suggestion')
+
+    option = models.OneToOneField(SymptomOption, on_delete=models.CASCADE, related_name='suggestion', null=True, blank=True)
     suggestion_text = models.TextField()
     is_prescription_needed = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Suggestion for {self.option.option_text}"
+        if self.option:
+            return f"Suggestion for {self.option.option_text}"
+        return "Generic Suggestion"
     
 
 class TimeSlot(models.Model):

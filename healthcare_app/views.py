@@ -266,28 +266,30 @@ def request_detail_view(request, request_id):
 @role_required(allowed_roles=['patient'])
 def quick_help_view(request):
     context = {}
-    
-    # If the user has selected an option
-    if request.method == 'POST':
-        option_id = request.POST.get('option_id')
-        try:
-            # Find the suggestion linked to the chosen option
-            selected_option = SymptomOption.objects.get(id=option_id)
-            suggestion = selected_option.suggestion
-            context['suggestion'] = suggestion
-        except (SymptomOption.DoesNotExist, Suggestion.DoesNotExist):
-            messages.error(request, "Sorry, a suggestion for that option could not be found.")
-            return redirect('quick_help')
 
-    # If it's the first visit to the page
+    if 'option_id' in request.POST:
+        option_id = request.POST.get('option_id')
+
+        try:
+            selected_option = SymptomOption.objects.select_related('next_symptom', 'suggestion').get(id=option_id)
+
+            if selected_option.next_symptom:
+                context['question'] = selected_option.next_symptom
+            elif hasattr(selected_option, 'suggestion'):
+                context['suggestion'] = selected_option.suggestion
+            else:
+                messages.error(request, "This path is not configured correctly.")
+                return redirect('quick_help')
+        except SymptomOption.DoesNotExist:
+            messages.error(request, "The selected option could not be found.")
+            return redirect('quick_help')
     else:
         try:
-            # Fetch the first question we want to ask
             main_symptom = Symptom.objects.get(name='main_symptom')
             context['question'] = main_symptom
         except Symptom.DoesNotExist:
-            context['error'] = "The Quick Help system is not configured yet. Please check back later."
-            
+            context['error'] = "The Quick Help system is not configured yet."
+
     return render(request, 'quick_help.html', context)
 
 @login_required
