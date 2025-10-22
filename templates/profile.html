@@ -52,12 +52,13 @@
                     </ul>
 
                     <div class="mt-4">
-                        <a href="{% url 'profile_edit' %}" class="btn btn-secondary">Edit Profile Details</a>
-                        <a href="{% url 'profile_picture_upload' %}" class="btn btn-outline-primary">Change Picture</a>
+                        <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edit Profile</a>
+                        <a href="{% url 'profile_picture_upload' %}" class="btn btn-secondary">Change Picture</a>
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-danger">Change Password</a>
                     </div>
                     </div>
-                    </div>
-                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

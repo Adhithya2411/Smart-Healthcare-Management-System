@@ -26,6 +26,7 @@ from .views import (
     create_doctor_view,
     manage_users_view,
 )
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # Authentication URLs
@@ -59,5 +60,14 @@ urlpatterns = [
     path('notifications/read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
     path('doctors/create/', create_doctor_view, name='create_doctor'),
     path('users/manage/', manage_users_view, name='manage_users'),
+
+    #password reset URLs
+    path('password/change/',
+         auth_views.PasswordChangeView.as_view(template_name='change_password.html', success_url='/password/change/done/'),
+         name='password_change'),
+         
+    path('password/change/done/',
+         auth_views.PasswordChangeDoneView.as_view(template_name='password_change_done.html'),
+         name='password_change_done'),
     
 ]
