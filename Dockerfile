@@ -4,6 +4,9 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# Install Graphviz for generating the ERD
+RUN apt-get update && apt-get install -y graphviz
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -18,3 +21,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the project files into the container
 COPY . /app/
+
+RUN python manage.py collectstatic --noinput
