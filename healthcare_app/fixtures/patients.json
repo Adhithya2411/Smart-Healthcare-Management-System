@@ -1,0 +1,62 @@
+[
+  {
+    "username": "alicew",
+    "email": "alice.w@example.com",
+    "first_name": "Alice",
+    "last_name": "Williams"
+  },
+  {
+    "username": "bobj",
+    "email": "bob.j@example.com",
+    "first_name": "Bob",
+    "last_name": "Johnson"
+  },
+  {
+    "username": "charlieb",
+    "email": "charlie.b@example.com",
+    "first_name": "Charlie",
+    "last_name": "Brown"
+  },
+  {
+    "username": "dianak",
+    "email": "diana.k@example.com",
+    "first_name": "Diana",
+    "last_name": "King"
+  },
+  {
+    "username": "edwardm",
+    "email": "edward.m@example.com",
+    "first_name": "Edward",
+    "last_name": "Miller"
+  },
+  {
+    "username": "fionag",
+    "email": "fiona.g@example.com",
+    "first_name": "Fiona",
+    "last_name": "Green"
+  },
+  {
+    "username": "georgeh",
+    "email": "george.h@example.com",
+    "first_name": "George",
+    "last_name": "Hall"
+  },
+  {
+    "username": "heleni",
+    "email": "helen.i@example.com",
+    "first_name": "Helen",
+    "last_name": "Irwin"
+  },
+  {
+    "username": "ivans",
+    "email": "ivan.s@example.com",
+    "first_name": "Ivan",
+    "last_name": "Scott"
+  },
+  {
+    "username": "judyt",
+    "email": "judy.t@example.com",
+    "first_name": "Judy",
+    "last_name": "Taylor"
+  }
+]

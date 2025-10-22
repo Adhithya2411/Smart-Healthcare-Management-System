@@ -1,0 +1,93 @@
+[
+  {
+    "username": "dr.smith",
+    "email": "john.smith@example.com",
+    "first_name": "John",
+    "last_name": "Smith",
+    "specialty": "General Medicine"
+  },
+  {
+    "username": "dr.davis",
+    "email": "sarah.davis@example.com",
+    "first_name": "Sarah",
+    "last_name": "Davis",
+    "specialty": "General Medicine"
+  },
+   {
+    "username": "dr.wilson",
+    "email": "robert.wilson@example.com",
+    "first_name": "Robert",
+    "last_name": "Wilson",
+    "specialty": "General Medicine"
+  },
+  {
+    "username": "dr.jones",
+    "email": "emily.jones@example.com",
+    "first_name": "Emily",
+    "last_name": "Jones",
+    "specialty": "Pediatrics"
+  },
+   {
+    "username": "dr.miller",
+    "email": "lisa.miller@example.com",
+    "first_name": "Lisa",
+    "last_name": "Miller",
+    "specialty": "Pediatrics"
+  },
+  {
+    "username": "dr.chen",
+    "email": "michael.chen@example.com",
+    "first_name": "Michael",
+    "last_name": "Chen",
+    "specialty": "Cardiology"
+  },
+   {
+    "username": "dr.garcia",
+    "email": "maria.garcia@example.com",
+    "first_name": "Maria",
+    "last_name": "Garcia",
+    "specialty": "Cardiology"
+  },
+  {
+    "username": "dr.patel",
+    "email": "priya.patel@example.com",
+    "first_name": "Priya",
+    "last_name": "Patel",
+    "specialty": "Dermatology"
+  },
+   {
+    "username": "dr.lee",
+    "email": "james.lee@example.com",
+    "first_name": "James",
+    "last_name": "Lee",
+    "specialty": "Dermatology"
+  },
+  {
+    "username": "dr.williams",
+    "email": "david.williams@example.com",
+    "first_name": "David",
+    "last_name": "Williams",
+    "specialty": "Orthopedics"
+  },
+  {
+    "username": "dr.brown",
+    "email": "jennifer.brown@example.com",
+    "first_name": "Jennifer",
+    "last_name": "Brown",
+    "specialty": "Orthopedics"
+  },
+  {
+    "username": "dr.thomas",
+    "email": "kevin.thomas@example.com",
+    "first_name": "Kevin",
+    "last_name": "Thomas",
+    "specialty": "Neurology"
+  },
+   {
+    "username": "dr.moore",
+    "email": "susan.moore@example.com",
+    "first_name": "Susan",
+    "last_name": "Moore",
+    "specialty": "Neurology"
+  }
+]
