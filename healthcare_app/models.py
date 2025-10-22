@@ -12,6 +12,16 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='patient')
 
 class DoctorProfile(models.Model):
+
+    SPECIALTY_CHOICES = [
+        ('General Medicine', 'General Medicine'),
+        ('Cardiology', 'Cardiology'),
+        ('Dermatology', 'Dermatology'),
+        ('Neurology', 'Neurology'),
+        ('Orthopedics', 'Orthopedics'),
+        ('Pediatrics', 'Pediatrics'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctorprofile')
     specialty = models.CharField(max_length=100, default="General Physician")
     years_of_experience = models.PositiveIntegerField(default=0)

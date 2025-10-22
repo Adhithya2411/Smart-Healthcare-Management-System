@@ -10,7 +10,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import (SignUpForm, LoginForm,HelpRequestForm,PatientProfileUpdateForm,
                      DoctorProfileUpdateForm,TimeSlotForm,AppointmentNotesForm, MedicalHistoryForm,
-                     ScheduleGenerationForm,AppointmentBookingForm)
+                     ScheduleGenerationForm,AppointmentBookingForm,DoctorCreationForm)
 from .models import (User,HelpRequest,Prescription,Symptom, SymptomOption, 
                      Suggestion,PatientMedicalHistory,TimeSlot,DoctorProfile,Appointment,Notification,
                      PatientProfile)
@@ -48,13 +48,13 @@ class CustomLoginView(LoginView):
         
         if user.is_authenticated:
             if user.role == 'admin':
-                # We will create the 'admin_dashboard' URL name later
+             
                 return reverse_lazy('admin_dashboard') 
             elif user.role == 'doctor':
-                # We will create the 'doctor_dashboard' URL name later
+        
                 return reverse_lazy('doctor_dashboard')
-            else: # Patient
-                # We will create the 'patient_dashboard' URL name later
+            else: 
+
                 return reverse_lazy('patient_dashboard')
         
         # Fallback for any other case
@@ -64,13 +64,12 @@ class CustomLoginView(LoginView):
 @login_required
 @role_required(allowed_roles=['admin'])
 def admin_dashboard(request):
-    # --- 1. Data for Stat Cards ---
+
     patient_count = User.objects.filter(role='patient').count()
     doctor_count = User.objects.filter(role='doctor').count()
     pending_requests_count = HelpRequest.objects.filter(status='Pending').count()
     completed_requests_count = HelpRequest.objects.filter(status='Answered').count()
 
-    # --- 2. Data for Bar Chart (Requests per Day) ---
     seven_days_ago = timezone.now().date() - timedelta(days=6)
     requests_per_day_query = (
         HelpRequest.objects.filter(requested_at__date__gte=seven_days_ago)
@@ -85,14 +84,8 @@ def admin_dashboard(request):
     bar_chart_labels = list(requests_data.keys())
     bar_chart_data = list(requests_data.values())
 
-    # --- 3. Data for Pie Chart (Request Status Breakdown) ---
     pie_chart_labels = ['Pending', 'Answered']
     pie_chart_data = [pending_requests_count, completed_requests_count]
-
-    # --- 4. Data for User Management Table ---
-    # Fetch the 5 most recently joined patients and doctors
-    latest_patients = User.objects.filter(role='patient').order_by('-date_joined')[:5]
-    latest_doctors = User.objects.filter(role='doctor').order_by('-date_joined')[:5]
 
     context = {
         'patient_count': patient_count,
@@ -103,10 +96,37 @@ def admin_dashboard(request):
         'bar_chart_data': json.dumps(bar_chart_data),
         'pie_chart_labels': json.dumps(pie_chart_labels),
         'pie_chart_data': json.dumps(pie_chart_data),
-        'latest_patients': latest_patients,
-        'latest_doctors': latest_doctors,
     }
     return render(request, 'admin_dashboard.html', context)
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def manage_users_view(request):
+    all_patients = User.objects.filter(role='patient').order_by('-date_joined')
+    all_doctors = User.objects.filter(role='doctor').order_by('-date_joined')
+    
+    context = {
+        'all_patients': all_patients,
+        'all_doctors': all_doctors,
+    }
+    return render(request, 'manage_users.html', context)
+
+@login_required
+@role_required(allowed_roles=['admin'])
+def create_doctor_view(request):
+    if request.method == 'POST':
+        form = DoctorCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'New doctor account has been created successfully!')
+            return redirect('admin_dashboard') # Redirect back to the dashboard after success
+    else:
+        form = DoctorCreationForm()
+    
+    context = {
+        'form': form
+    }
+    return render(request, 'create_doctor.html', context)
 
 @login_required
 @role_required(allowed_roles=['doctor'])

@@ -1,0 +1,51 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Manage Users</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-header"><h4 class="mb-0"><i class="fas fa-users-cog me-2"></i>All System Users</h4></div>
+        <div class="card-body">
+            <h5 class="card-title">All Patients</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead><tr><th>Username</th><th>Email</th><th>Date Joined</th><th>Action</th></tr></thead>
+                    <tbody>
+                        {% for patient in all_patients %}
+                            <tr>
+                                <td>{{ patient.username }}</td>
+                                <td>{{ patient.email }}</td>
+                                <td>{{ patient.date_joined|date:"F d, Y" }}</td>
+                                <td><a href="/admin/healthcare_app/user/{{ patient.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">View/Edit</a></td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center">No patients found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <h5 class="card-title mt-4">All Doctors</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead><tr><th>Username</th><th>Email</th><th>Date Joined</th><th>Action</th></tr></thead>
+                    <tbody>
+                        {% for doctor in all_doctors %}
+                            <tr>
+                                <td>{{ doctor.username }}</td>
+                                <td>{{ doctor.email }}</td>
+                                <td>{{ doctor.date_joined|date:"F d, Y" }}</td>
+                                <td><a href="/admin/healthcare_app/user/{{ doctor.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">View/Edit</a></td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center">No doctors found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,14 +7,15 @@ from .models import User, PatientProfile, DoctorProfile,HelpRequest,Prescription
 from datetime import datetime
 
 class SignUpForm(UserCreationForm):
+
     ROLE_CHOICES = (
         ('patient', 'I am a Patient'),
-        ('doctor', 'I am a Doctor'),
     )
+
     role = forms.ChoiceField(
         choices=ROLE_CHOICES,
         required=True,
-        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}) 
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'})
     )
     
     class Meta(UserCreationForm.Meta):
@@ -47,11 +48,10 @@ class SignUpForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.role = self.cleaned_data['role']
+        user.role = 'patient'
         if commit:
             user.save()
-            if user.role == 'patient': PatientProfile.objects.create(user=user)
-            elif user.role == 'doctor': DoctorProfile.objects.create(user=user)
+            PatientProfile.objects.create(user=user)
         return user
 
 
@@ -193,3 +193,27 @@ class MedicalHistoryForm(forms.ModelForm):
             'condition_name': 'Condition',
             'status': 'Current Status',
         }
+
+class DoctorCreationForm(UserCreationForm):
+    specialty = forms.ChoiceField(choices=DoctorProfile.SPECIALTY_CHOICES, required=True)
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name')
+        
+    # This method adds the Bootstrap classes to each form field
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'form-control'})
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = 'doctor'
+        if commit:
+            user.save()
+            DoctorProfile.objects.create(
+                user=user,
+                specialty=self.cleaned_data.get('specialty')
+            )
+        return user

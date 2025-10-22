@@ -22,7 +22,9 @@ from .views import (
     appointment_detail_view,
     appointment_history_view,
     consultation_room_view,
-    mark_notification_as_read
+    mark_notification_as_read,
+    create_doctor_view,
+    manage_users_view,
 )
 
 urlpatterns = [
@@ -55,5 +57,7 @@ urlpatterns = [
 
     path('consultation/<int:appointment_id>/', consultation_room_view, name='consultation_room'),
     path('notifications/read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    path('doctors/create/', create_doctor_view, name='create_doctor'),
+    path('users/manage/', manage_users_view, name='manage_users'),
     
 ]

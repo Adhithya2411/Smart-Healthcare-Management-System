@@ -111,8 +111,8 @@
 
             {% if user.role == 'admin' %}
                 <li><a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="/admin/healthcare_app/user/"><i class="fas fa-users-cog"></i> Manage Users</a></li>
-                <li><a href="/admin/healthcare_app/helprequest/"><i class="fas fa-clipboard-list"></i> All Requests</a></li>
+                <li><a href="{% url 'create_doctor' %}" class="list-group-item list-group-item-action bg-dark text-white"><i class="fas fa-user-plus me-2"></i>Create Doctor</a></li>
+                <li><a href="{% url 'manage_users' %}" class="list-group-item list-group-item-action bg-dark text-white"><i class="fas fa-users-cog me-2"></i>Manage Users</a></li>
             {% elif user.role == 'doctor' %}
                 <li><a href="{% url 'doctor_dashboard' %}" class="{% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="{% url 'manage_schedule' %}" class="{% if request.resolver_match.url_name == 'manage_schedule' %}active{% endif %}"><i class="fas fa-calendar-plus"></i> Manage Schedule</a></li>
