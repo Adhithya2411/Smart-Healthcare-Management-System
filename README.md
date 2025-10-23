@@ -74,3 +74,43 @@ The following diagram illustrates the database schema, including all models and 
 5.  **Access the Application**
     -   **Main Application:** [http://localhost:8000](http://localhost:8000)
     -   **pgAdmin (Database GUI):** [http://localhost:5050](http://localhost:5050)
+
+
+## Screenshots
+
+<details>
+<summary>Click to expand and see application screenshots</summary>
+
+### Landing Page
+*The public-facing landing page for new visitors.*
+![Landing Page](./docs/images/landing-page.png)
+
+### Admin Dashboard
+*Provides a high-level overview of site analytics and user management controls.*
+![Admin Dashboard](./docs/images/admin-dashboard.png)
+
+### Doctor Dashboard
+*The central hub for doctors to manage pending requests, active cases, and upcoming appointments.*
+![Doctor Dashboard](./docs/images/doctor-dashboard.png)
+
+### Patient Dashboard
+*Allows patients to submit help requests, view their history, and see answered prescriptions.*
+![Patient Dashboard](./docs/images/patient-dashboard.png)
+
+### Find a Doctor
+*A list of all available doctors on the platform, filterable by specialty.*
+![Find a Doctor](./docs/images/book-appointment-patient.png)
+
+### Doctor's Schedule
+*After selecting a doctor, patients can view and book available time slots.*
+![Doctor Schedule](./docs/images/doctor-schedule.png)
+
+### Live Consultation Room
+*A secure, real-time chat interface for patient-doctor consultations.*
+![Consultation Room](./docs/images/consultation.png)
+
+### Smart Quick Help
+*An interactive symptom checker to provide users with preliminary guidance.*
+![Smart Quick Help](./docs/images/smart-quick-help.png)
+
+</details>
