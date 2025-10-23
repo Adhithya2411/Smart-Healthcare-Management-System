@@ -1,0 +1,37 @@
+services:
+  # 1. The PostgreSQL Database
+  - type: psql
+    name: smart-healthcare-db
+    plan: free
+
+  # 2. The Redis Server for Chat
+  - type: redis
+    name: smart-healthcare-redis
+    plan: free
+
+  # 3. The Django Web Application
+  - type: web
+    name: smart-healthcare-system
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      # Tell Django which settings file to use
+      - key: DJANGO_SETTINGS_MODULE
+        value: smart_healthcare_project.settings
+
+      # Let Render generate a secure, random secret key
+      - key: SECRET_KEY
+        generateValue: true
+
+      # Get the database URL from the PostgreSQL service we created above
+      - key: DATABASE_URL
+        fromService:
+          type: psql
+          name: smart-healthcare-db
+
+      # Get the Redis URL from the Redis service we created above
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: smart-healthcare-redis
